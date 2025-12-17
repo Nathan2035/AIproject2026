@@ -6,7 +6,7 @@
 <style>
     body {
         margin: 0;
-        background: #ffffff; /* 白色背景 */
+        background: #ffffff;
         font-family: "Segoe UI", sans-serif;
         color: #000;
         overflow: hidden;
@@ -95,30 +95,6 @@
         font-size: 14px;
         color: #333;
     }
-
-    /* 跑馬遊戲樣式 */
-    #race-track {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 80%;
-        height: 120px;
-        background: #eee;
-        border: 2px solid #ccc;
-        border-radius: 12px;
-        display: none;
-        overflow: hidden;
-    }
-
-    .horse {
-        position: absolute;
-        top: 10px;
-        width: 50px;
-        height: 50px;
-        background: red;
-        border-radius: 50%;
-    }
 </style>
 </head>
 <body>
@@ -126,10 +102,6 @@
 <h1>AI生成程式</h1>
 
 <div id="bubble-container"></div>
-
-<div id="race-track">
-    <div class="horse" id="horse1"></div>
-</div>
 
 <div id="footer">
     👀 網站瀏覽人數：<span id="viewCount">0</span>
@@ -140,7 +112,7 @@
    泡泡資料
 ========================= */
 const bubbleData = [
-    { name: "直線跑馬遊戲", link: "#" },
+    { name: "直線跑馬遊戲", link: "data/horseracing.html" },
     { name: "工具 B", link: "#" },
     { name: "工具 C", link: "#" },
     { name: "工具 D", link: "#" },
@@ -154,7 +126,7 @@ const bubbleData = [
 ========================= */
 const BASE_SIZE = 110;
 const HOVER_SCALE = 1.9;
-const PADDING = 10;
+const PADDING = 2; // 調小間距，允許泡泡稍微靠近
 const container = document.getElementById("bubble-container");
 
 function getRandomPosition(placed) {
@@ -172,6 +144,7 @@ function getRandomPosition(placed) {
         const x = startX + Math.random() * (effectiveWidth - BASE_SIZE);
         const y = startY + Math.random() * (effectiveHeight - BASE_SIZE);
 
+        // 允許輕微重疊
         let overlap = placed.some(p => {
             const dx = p.x - x;
             const dy = p.y - y;
@@ -207,14 +180,6 @@ function createBubbles() {
             bubble.style.transform = "scale(1)";
         });
 
-        // 點擊跑馬遊戲泡泡
-        if (item.name === "直線跑馬遊戲") {
-            bubble.addEventListener("click", e => {
-                e.preventDefault();
-                startRace();
-            });
-        }
-
         container.appendChild(bubble);
     });
 }
@@ -229,35 +194,6 @@ let views = localStorage.getItem("siteViews");
 views = views ? parseInt(views) + 1 : 1;
 localStorage.setItem("siteViews", views);
 document.getElementById("viewCount").innerText = views;
-
-/* =========================
-   跑馬遊戲邏輯
-========================= */
-const raceTrack = document.getElementById("race-track");
-const horse1 = document.getElementById("horse1");
-
-function startRace() {
-    raceTrack.style.display = "block";
-    horse1.style.left = "0px";
-
-    let startTime = null;
-    const duration = 3000; // 3 秒跑完
-    const trackWidth = raceTrack.clientWidth - horse1.clientWidth;
-
-    function animate(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const progress = (timestamp - startTime) / duration;
-        if (progress < 1) {
-            horse1.style.left = trackWidth * progress + "px";
-            requestAnimationFrame(animate);
-        } else {
-            horse1.style.left = trackWidth + "px";
-            setTimeout(() => raceTrack.style.display = "none", 1000);
-        }
-    }
-
-    requestAnimationFrame(animate);
-}
 </script>
 
 </body>
