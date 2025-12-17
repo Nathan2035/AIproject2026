@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>小瑪莉跑燈機台</title>
+<style>
+body {
+  margin:0;
+  background:#fff;
+  font-family:Arial;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+#top {
+  width:348px;
+  display:flex;
+  justify-content:space-between;
+  margin:10px 0;
+}
+
+.panel {
+  width:170px;
+  background:#222;
+  color:#0f0;
+  border:4px solid gold;
+  padding:6px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.panel-title {
+  font-size:18px;
+  margin-bottom:4px;
+  color:#fff;
+  text-shadow:0 0 4px #000;
+}
+
+.digits {
+  display:flex;
+  gap:3px;
+}
+
+.digit {
+  width:26px;
+  height:34px;
+  background:#111;
+  border:2px solid #555;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-weight:bold;
+  color:#f00;
+  font-size:18px;
+  box-shadow:0 0 6px #f00,inset 0 0 4px #600;
+  border-radius:4px;
+  font-family:'Courier New', monospace;
+}
+
+#game {
+  position:relative;
+  width:348px;
+  height:348px;
+  border:6px solid gold;
+  background:#fff;
+  margin-bottom:10px;
+}
+
+#grid {
+  width:100%;
+  height:100%;
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  grid-template-rows:repeat(7,1fr);
+  gap:1px;
+  position:relative;
+}
+
+.cell {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:18px;
+  position:relative;
+  background:#fff;
+  border:1px solid #000;
+  color:#000;
+}
+
+.light {
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#333;
+  position:absolute;
+  top:2px;
+  right:2px;
+}
+
+#center-frame {
+  position:absolute;
+  border:6px solid gold;
+  width:254px;
+  height:254px;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  box-sizing:border-box;
+}
+
+#msg {
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:36px;
+  font-weight:bold;
+  pointer-events:none;
+  text-shadow:0 0 15px #000;
+}
+
+#bets {
+  margin:10px 0;
+  display:flex;
+  width:348px;          /* 與遊戲區寬度一致 */
+  justify-content:space-between;
+}
+
+.bet {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:38px;           /* 348/9 ≈ 38px，每個小框寬度 */
+}
+
+.fixed-number {
+  width:100%;
+  height:24px;
+  background:#ccc;
+  border:1px solid #555;
+  color:#000;
+  font-weight:bold;
+  font-size:16px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border-radius:3px;
+  margin-bottom:2px;
+  font-family:'Courier New', monospace;
+}
+
+.bet button {
+  width:100%;
+  height:40px;
+  background:#222;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.bet .count {
+  width:100%;
+  height:24px;
+  line-height:24px;
+  text-align:center;
+  background:#111;
+  border:2px solid #555;
+  color:#f00;
+  font-weight:bold;
+  font-size:16px;
+  box-shadow:0 0 6px #f00,inset 0 0 4px #600;
+  border-radius:3px;
+  font-family:'Courier New', monospace;
+  margin-top:2px;
+}
+
+#start {
+  width:120px;
+  height:40px;
+  background:#0a0;
+  border:none;
+  color:#fff;
+  font-weight:bold;
+  cursor:pointer;
+  margin-bottom:10px;
+}
+</style>
+</head>
+<body>
+<div id="top">
+  <div class="panel" id="win-panel">
+    <div class="panel-title">WIN</div>
+    <div class="digits" id="win-digits">
+      <div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div>
+    </div>
+  </div>
+  <div class="panel" id="credit-panel">
+    <div class="panel-title">CREDIT</div>
+    <div class="digits" id="credit-digits">
+      <div class="digit">5</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div>
+    </div>
+  </div>
+</div>
+
+<div id="game">
+  <div id="grid"></div>
+  <div id="center-frame"></div>
+  <div id="msg"></div>
+</div>
+
+<div id="bets"></div>
+<button id="start">START</button>
+
+<script>
+const grid=document.getElementById('grid');
+const msg=document.getElementById('msg');
+
+let credit=5000;
+let win=0;
+let bets={};
+let betCounts={};
+let spinning=false;
+let pos=0;
+
+function updateDigits(elId,value){
+  const str=value.toString().padStart(4,'0');
+  const digits=document.getElementById(elId).children;
+  for(let i=0;i<4;i++) digits[i].textContent=str[i];
+}
+
+const letters=Array(7).fill(0).map(()=>Array(7).fill(''));
+letters[0][0]='A'; letters[6][6]='A';
+letters[0][1]='B'; letters[6][5]='B';
+letters[0][2]='C'; letters[0][5]='C';
+letters[2][6]='C'; letters[5][6]='C';
+letters[6][4]='C'; letters[6][1]='C';
+letters[4][0]='C'; letters[1][0]='C';
+letters[0][3]='D';
+letters[0][4]='E'; letters[2][0]='E';
+letters[4][6]='E'; letters[6][2]='E';
+letters[0][6]='F'; letters[6][0]='F';
+letters[1][6]='G';
+letters[6][3]='H';
+letters[5][0]='I';
+
+let cells=[];
+for(let r=0;r<7;r++){
+  for(let c=0;c<7;c++){
+    const d=document.createElement('div');
+    d.className='cell';
+    d.dataset.letter=letters[r][c];
+    d.textContent=letters[r][c];
+
+    const l=document.createElement('div');
+    l.className='light';
+
+    if(r>=1 && r<=5 && c>=1 && c<=5){
+      d.dataset.center='true';
+      d.style.background='#fff';
+      d.style.border='1px solid #fff';
+      l.style.background='#fff';
+      d.style.color='#fff';
+    }
+
+    d.appendChild(l);
+    grid.appendChild(d);
+    cells.push({el:d});
+  }
+}
+
+let order=[];
+for(let c=0;c<7;c++) order.push(cells[c]);
+for(let r=1;r<6;r++) order.push(cells[r*7+6]);
+for(let c=6;c>=0;c--) order.push(cells[6*7+c]);
+for(let r=5;r>0;r--) order.push(cells[r*7]);
+
+const buttonConfig=[
+  {ch:'E',mult:5},{ch:'G',mult:20},{ch:'I',mult:30},{ch:'H',mult:40},
+  {ch:'D',mult:50},{ch:'B',mult:20},{ch:'F',mult:15},{ch:'A',mult:10},{ch:'C',mult:2}
+];
+
+const betBox=document.getElementById('bets');
+buttonConfig.forEach(cfg=>{
+  bets[cfg.ch]=0; betCounts[cfg.ch]=0;
+  const wrap=document.createElement('div'); wrap.className='bet';
+  const fixed=document.createElement('div'); fixed.className='fixed-number'; fixed.textContent=cfg.mult;
+  const btn=document.createElement('button'); btn.textContent=cfg.ch;
+  const count=document.createElement('div'); count.className='count'; count.textContent='0';
+  btn.onclick=()=>{
+    if(spinning || credit<=0 || betCounts[cfg.ch]>=9) return;
+    betCounts[cfg.ch]++; bets[cfg.ch]++; credit--; count.textContent=betCounts[cfg.ch]; 
+    updateDigits('credit-digits',credit);
+    const coinSound = new Audio('coin07.mp3');
+    coinSound.volume = 0.6;
+    coinSound.play();
+  };
+  wrap.appendChild(fixed); wrap.appendChild(btn); wrap.appendChild(count);
+  betBox.appendChild(wrap);
+});
+
+function playTick(){
+  const tick = new Audio('correct_answer2.mp3');
+  tick.volume=0.6;
+  tick.play();
+}
+
+function spin(){
+  spinning=true;
+  let steps=Math.floor(Math.random()*40)+50;
+  let i=0;
+  let speed=200;
+
+  function go(){
+    order.forEach((o,idx)=>{
+      const l=o.el.querySelector('.light');
+      if(o.el.dataset.center==='true') l.style.background='#fff';
+      else l.style.background=idx===pos?'#f00':'#333';
+    });
+
+    playTick();
+
+    pos=(pos+1)%order.length;
+    i++;
+    speed=i<steps/2?Math.max(40,speed-5):Math.min(300,speed+6);
+    if(i>=steps){
+      spinning=false;
+      const stop=order[(pos-1+order.length)%order.length];
+      const letter=stop.el.dataset.letter;
+      const cfg=buttonConfig.find(b=>b.ch===letter);
+      const gain=cfg ? bets[letter]*cfg.mult : 0;
+      win+=gain;
+
+      msg.style.color=gain?'#ff0':'#f00';
+      msg.textContent=gain?`押中 ${letter} +${gain}`:`沒中 ${letter||'空格'}`;
+      updateDigits('win-digits',win);
+
+      setTimeout(()=>{
+        for(let k in bets){bets[k]=0; betCounts[k]=0;}
+        document.querySelectorAll('.count').forEach(c=>c.textContent='0');
+        msg.textContent='';
+        updateDigits('credit-digits',credit);
+        updateDigits('win-digits',win);
+      },3000);
+      return;
+    }
+    setTimeout(go,speed);
+  }
+  go();
+}
+
+document.getElementById('start').onclick=()=>{
+  if(spinning || Object.values(bets).every(v=>v===0)) return;
+  spin();
+};
+</script>
+</body>
+</html>
