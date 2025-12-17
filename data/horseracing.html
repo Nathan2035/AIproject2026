@@ -439,7 +439,7 @@ function update(ts){
             }
         }
 
-        h.x += actualSpeed * delta * 60;
+        h.x += actualSpeed * delta * 120;  // 可調比賽速度
         h.el.style.right = h.x + 'px';
 
         h.tilt += 0.4 * h.tiltDirection;
