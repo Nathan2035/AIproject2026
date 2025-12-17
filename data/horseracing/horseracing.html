@@ -195,13 +195,18 @@ button:disabled{
 <body>
 
 <button id="backBtn">回到上一頁</button>
+<div id="version" style="position:fixed; top:50px; right:10px; font-size:14px; color:#ffd700;">版本: V0.1</div>
+<div id="visitorCount" style="position:fixed; top:70px; right:10px; font-size:14px; color:#ffd700;">訪客人數: <span id="count">0</span></div>
+
 
 <div id="controls">
     <div class="bet-row">
+      <span style="margin-right:10px;  color:#ffd700; align-self:center; font-size:30px">賽豬遊戲簡單版</span>
+      
         <div class="bet-box">
-            <label>George：</label>
+            <label>George :</label>
             <select id="betSelect"></select>
-            <label>金額：</label>
+            <label>金額 :</label>
             <select id="chipSelect1">
                 <option value="100">100元</option>
                 <option value="500">500元</option>
@@ -209,18 +214,19 @@ button:disabled{
             </select>
         </div>
         <div class="bet-box">
-            <label>Mary：</label>
+            <label>Mary :</label>
             <select id="betSelect2"></select>
-            <label>金額：</label>
+            <label>金額 :</label>
             <select id="chipSelect2">
                 <option value="100">100元</option>
                 <option value="500">500元</option>
                 <option value="1000">1000元</option>
             </select>
         </div>
-        <span>目前籌碼：<span id="playerChips">5000</span>元</span>
-    </div>
+         
+     </div>
     <div id="button-row">
+        <label>請先選擇上面編號及金額再按下注</label><span>目前籌碼 : <span id="playerChips">5000</span>元</span>
         <button id="placeBetBtn">下注</button>
         <button id="startBtn" disabled>開始比賽</button>
         <button id="rematchBtn" disabled>重新比賽</button>
@@ -255,6 +261,22 @@ button:disabled{
 <audio id="winSound" src="coin07.mp3" preload="auto"></audio>
 
 <script>
+//訪客計數器
+// 總訪客數
+let totalCount = parseInt(localStorage.getItem('visitorCount') || '0');
+
+// 判斷 session 是否已經增加過
+if (!sessionStorage.getItem('visited')) {
+    totalCount++;
+    localStorage.setItem('visitorCount', totalCount);
+    sessionStorage.setItem('visited', 'true');
+}
+
+// 顯示固定5位數
+document.getElementById('count').textContent = totalCount.toString().padStart(5, '0');
+
+//
+
 const HORSE_COUNT = 8;
 let playerChips = 5000;
 const betSelect = document.getElementById('betSelect');
@@ -371,7 +393,7 @@ placeBetBtn.onclick=()=>{
     playerChipsEl.textContent=playerChips;
     currentBets=[bet1,bet2];
     currentChips=[chip1,chip2];
-    showBetMessage(`下注成功！George押${bet1}號${chip1}元，Mary押${bet2}號${chip2}元`);
+    showBetMessage(`已下注！George押${bet1}號${chip1}元，Mary押${bet2}號${chip2}元`);
     startBtn.disabled=false;
     placeBetBtn.disabled=true;
     betPlaced=true;
@@ -497,9 +519,9 @@ function handleBetResults(){
         let reward=0;
         let msg='';
         const name=idx===0?'George':'Mary';
-        if(bet===firstThree[0]){ reward=chip*3; playerChips+=reward; msg=`${name}押中冠軍獎金 ${reward}元`; winSound.currentTime=0; winSound.play();}
-        else if(bet===firstThree[1]){ reward=chip*2; playerChips+=reward; msg=`${name}押中亞軍獎金 ${reward}元`;}
-        else if(bet===firstThree[2]){ reward=chip*1; playerChips+=reward; msg=`${name}打平獎金 ${reward}元`;}
+        if(bet===firstThree[0]){ reward=chip*3; playerChips+=reward; msg=`${name}押中冠軍 獎金 ${reward}元`; winSound.currentTime=0; winSound.play();}
+        else if(bet===firstThree[1]){ reward=chip*2; playerChips+=reward; msg=`${name}押中亞軍 獎金 ${reward}元`;}
+        else if(bet===firstThree[2]){ reward=chip*1; playerChips+=reward; msg=`${name}打平 獎金 ${reward}元`;}
         else{ msg=`${name}沒有押中`;}
         resultMsgs.push(msg);
     });
