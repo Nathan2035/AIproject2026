@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>直線賽馬遊戲</title>
+<title>賽豬遊戲</title>
 <style>
 body{
     font-family:Segoe UI,Arial;
@@ -291,6 +291,7 @@ let ragingHorseId = null;
 let raceHistory = [];
 let statsVisible = false;
 let betPlaced = false;
+let lastTs = null; // 新增追蹤每幀時間
 
 function init() {
     track.querySelectorAll('.lane,.horse').forEach(e => e.remove());
@@ -304,6 +305,7 @@ function init() {
     horses = [];
     rankingCounter = 0;
     startTime = null;
+    lastTs = null;
     startBtn.disabled = true;
     rematchBtn.disabled = true;
     placeBetBtn.disabled = false;
@@ -326,7 +328,7 @@ function init() {
 
         horses.push({ 
             id: i + 1, 
-            x: 10, 
+            x: 10,           // 初始位置
             speed: ((Math.random() * 2 + 1.5) * 0.5) * 0.8, 
             finished: false, 
             el: horse,
@@ -403,6 +405,7 @@ function startCountdown(){
                 countdownEl.style.display='none';
                 startLine.style.display='none';
                 startTime=performance.now();
+                lastTs = null;
                 animationId=requestAnimationFrame(update);
             },1000);
         }
@@ -410,42 +413,47 @@ function startCountdown(){
     showCount();
 }
 
+// 新增 update 版本（固定速度 + 爆走安全）
 function update(ts){
+    if(lastTs === null) lastTs = ts;
+    const delta = (ts - lastTs)/1000;
+    lastTs = ts;
+
     horses.forEach(h=>{
         if(h.finished) return;
 
-        if(h.id===ragingHorseId && !h.isRaging && Math.random()<0.005){
-            h.isRaging=true;
-            h.rageTime=20;
-            h.rageSpeed=(1+Math.random()*2)*0.8;
-            h.el.style.fontSize="36px";
+        if(h.id === ragingHorseId && !h.isRaging && Math.random() < 0.005){
+            h.isRaging = true;
+            h.rageTime = 0.5;
+            h.rageSpeed = (1 + Math.random() * 2) * 0.8;
+            h.el.style.fontSize = "36px";
         }
 
-        let actualSpeed=h.speed;
+        let actualSpeed = h.speed;
         if(h.isRaging){
-            actualSpeed+=h.rageSpeed;
-            h.rageTime--;
-            if(h.rageTime<=0){
-                h.isRaging=false;
-                h.el.style.fontSize="32px";
+            actualSpeed += h.rageSpeed;
+            h.rageTime -= delta;
+            if(h.rageTime <= 0){
+                h.isRaging = false;
+                h.el.style.fontSize = "32px";
             }
         }
 
-        h.x+=actualSpeed;
-        h.el.style.right=h.x+'px';
+        h.x += actualSpeed * delta * 60;
+        h.el.style.right = h.x + 'px';
 
-        h.tilt+=0.4*h.tiltDirection;
-        if(h.tilt>=10) h.tiltDirection=-1;
-        if(h.tilt<=-10) h.tiltDirection=1;
-        h.el.style.transform=`rotate(${h.tilt}deg)`;
+        h.tilt += 0.4 * h.tiltDirection;
+        if(h.tilt >= 10) h.tiltDirection = -1;
+        if(h.tilt <= -10) h.tiltDirection = 1;
+        h.el.style.transform = `rotate(${h.tilt}deg)`;
 
-        if(h.x>=track.clientWidth-finishLineX){
-            h.finished=true;
-            h.finishTime=((ts-startTime)/1000).toFixed(2);
-            horseRow.cells[rankingCounter].textContent=h.id;
-            timeRow.cells[rankingCounter].textContent=h.finishTime+'s';
-            if(rankingCounter===0){
-                const crown=document.createElement('div');
+        if(h.x >= track.clientWidth - finishLineX && !h.finished){
+            h.finished = true;
+            h.finishTime = ((ts - startTime)/1000).toFixed(2);
+            horseRow.cells[rankingCounter].textContent = h.id;
+            timeRow.cells[rankingCounter].textContent = h.finishTime + 's';
+            if(rankingCounter === 0){
+                const crown = document.createElement('div');
                 crown.className='crown';
                 crown.textContent='👑';
                 h.el.appendChild(crown);
@@ -454,15 +462,16 @@ function update(ts){
         }
     });
 
-    if(horses.every(h=>h.finished)){
+    if(horses.every(h => h.finished)){
         saveRaceResult();
         handleBetResults();
         cancelAnimationFrame(animationId);
-        animationId=null;
+        animationId = null;
+        lastTs = null;
         return;
     }
 
-    animationId=requestAnimationFrame(update);
+    animationId = requestAnimationFrame(update);
 }
 
 function saveRaceResult(){
