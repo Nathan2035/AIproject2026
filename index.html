@@ -104,7 +104,7 @@
 <div id="bubble-container"></div>
 
 <div id="footer">
-    👀 網站瀏覽人數：<span id="viewCount">0</span>
+    👀 訪客人數：<span id="viewCount">0</span>
 </div>
 
 <script>
@@ -187,13 +187,24 @@ function createBubbles() {
 createBubbles();
 window.addEventListener("resize", createBubbles);
 
+
 /* =========================
-   瀏覽人數模擬
+   瀏覽人數計數（首頁跳轉才加）
 ========================= */
+
+// 讀取總訪客數
 let views = localStorage.getItem("siteViews");
-views = views ? parseInt(views) + 1 : 1;
-localStorage.setItem("siteViews", views);
-document.getElementById("viewCount").innerText = views;
+views = views ? parseInt(views) : 0;
+
+// 判斷本次 session 是否已計數
+if (!sessionStorage.getItem("counted")) {
+    views += 1;
+    localStorage.setItem("siteViews", views);
+    sessionStorage.setItem("counted", "true"); // 標記本次 session 已計數
+}
+
+// 顯示五位數
+document.getElementById("viewCount").innerText = views.toString().padStart(5,'0');
 </script>
 
 </body>
