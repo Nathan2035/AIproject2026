@@ -34,15 +34,12 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 <div id="bets"></div><button id="start">START</button>
 
 <script>
-// 變數
 const grid=document.getElementById('grid'); 
 const msg=document.getElementById('msg');
 let credit=5000, win=0; 
 let bets={}, betCounts={}; 
-let spinning=false; 
-let posIndex=0; // 記錄當前燈位置
+let spinning=false, pos=0;
 
-// 更新數字
 function updateDigits(id,val){
   const s=val.toString().padStart(4,'0'); 
   const d=document.getElementById(id).children; 
@@ -52,10 +49,10 @@ function updateDigits(id,val){
 // 建立格子
 const letters=Array(7).fill(0).map(()=>Array(7).fill(''));
 letters[0][0]='A';letters[6][6]='A'; letters[0][1]='B'; letters[6][5]='B';
-letters[0][2]='C';letters[0][5]='C'; letters[2][6]='C'; letters[5][6]='C';
+letters[0][2]='C'; letters[0][5]='C'; letters[2][6]='C'; letters[5][6]='C';
 letters[6][4]='C';letters[6][1]='C'; letters[4][0]='C'; letters[1][0]='C';
-letters[0][3]='D'; letters[0][4]='E';letters[2][0]='E';letters[4][6]='E';
-letters[6][2]='E';letters[0][6]='F';letters[6][0]='F';letters[1][6]='G';
+letters[0][3]='D'; letters[0][4]='E'; letters[2][0]='E'; letters[4][6]='E';
+letters[6][2]='E'; letters[0][6]='F'; letters[6][0]='F'; letters[1][6]='G';
 letters[6][3]='H'; letters[5][0]='I';
 
 let cells=[]; 
@@ -67,26 +64,27 @@ for(let r=0;r<7;r++){
     d.textContent=letters[r][c];
     const l=document.createElement('div'); 
     l.className='light';
-    if(r>=1&&r<=5 && c>=1&&c<=5){ d.dataset.center='true'; d.style.border='1px solid #fff'; d.style.color='#fff'; l.style.background='#fff'; }
-    else { l.style.background='#bbb'; } // 初始灰色
+    if(r>=1&&r<=5 && c>=1&&c<=5){d.dataset.center='true';d.style.border='1px solid #fff';d.style.color='#fff'; l.style.background='#fff';}
+    else { l.style.background='#bbb'; } // 初始灰色燈
     d.appendChild(l); 
     grid.appendChild(d); 
     cells.push({el:d});
   }
 }
 
-// 設定跑燈順序
-let order=[];for(let c=0;c<7;c++) order.push(cells[c]);
+let order=[];
+for(let c=0;c<7;c++) order.push(cells[c]);
 for(let r=1;r<6;r++) order.push(cells[r*7+6]);
 for(let c=6;c>=0;c--) order.push(cells[6*7+c]);
 for(let r=5;r>0;r--) order.push(cells[r*7]);
 
-// 按鈕設定
-const buttonConfig=[{ch:'E',mult:5},{ch:'G',mult:20},{ch:'I',mult:30},{ch:'H',mult:40},{ch:'D',mult:50},{ch:'B',mult:20},{ch:'F',mult:15},{ch:'A',mult:10},{ch:'C',mult:2}];
-const betBox=document.getElementById('bets');
-const tickSound = new Audio('coin07.mp3'); 
-tickSound.volume = 0.6;
+const buttonConfig=[
+  {ch:'E',mult:5},{ch:'G',mult:20},{ch:'I',mult:30},
+  {ch:'H',mult:40},{ch:'D',mult:50},{ch:'B',mult:20},
+  {ch:'F',mult:15},{ch:'A',mult:10},{ch:'C',mult:2}
+];
 
+const betBox=document.getElementById('bets');
 buttonConfig.forEach(cfg=>{
   bets[cfg.ch]=0; betCounts[cfg.ch]=0;
   const wrap=document.createElement('div'); wrap.className='bet';
@@ -94,69 +92,87 @@ buttonConfig.forEach(cfg=>{
   const btn=document.createElement('button'); btn.textContent=cfg.ch;
   const count=document.createElement('div'); count.className='count'; count.textContent='0';
   btn.onclick=()=>{
-    if(spinning||credit<=0||betCounts[cfg.ch]>=9) return;
-    betCounts[cfg.ch]++; bets[cfg.ch]++; credit--; count.textContent=betCounts[cfg.ch]; updateDigits('credit-digits',credit);
-    tickSound.currentTime=0; tickSound.play();
+    if(spinning||credit<=0||betCounts[cfg.ch]>=9)return; 
+    betCounts[cfg.ch]++; bets[cfg.ch]++; credit--; count.textContent=betCounts[cfg.ch]; 
+    updateDigits('credit-digits',credit);
+    playTick();
   };
-  wrap.append(fixed,btn,count); betBox.appendChild(wrap);
+  wrap.append(fixed,btn,count); 
+  betBox.appendChild(wrap);
 });
 
-// 固定時間控制跑燈
+// Web Audio API 音效
+let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let tickBuffer = null;
+
+fetch('coin07.mp3')
+  .then(r=>r.arrayBuffer())
+  .then(data => audioCtx.decodeAudioData(data))
+  .then(buf => tickBuffer = buf);
+
+function playTick(){
+  if(!tickBuffer) return;
+  const source = audioCtx.createBufferSource();
+  source.buffer = tickBuffer;
+  source.connect(audioCtx.destination);
+  source.start();
+}
+
+// 跑燈
 function spin(){
   if(spinning) return;
   spinning=true;
+  const minDelay=50; const maxDelay=300;
   const totalSteps = order.length*4 + Math.floor(Math.random()*order.length);
-  let step=0;
-  const startTime = performance.now();
-  const accelFraction = 0.25, decelFraction = 0.25;
-  const minDelay = 50, maxDelay = 300;
+  let step=0; 
+  const accelSteps = totalSteps*0.25; 
+  const decelSteps = totalSteps*0.25;
 
-  function animate(time){
-    const fraction = step/totalSteps;
-
-    // 計算當前延遲
-    let delay;
-    if(fraction<accelFraction){ delay = maxDelay - (maxDelay-minDelay)*(fraction/accelFraction);}
-    else if(fraction>1-decelFraction){ delay = minDelay + (maxDelay-minDelay)*((fraction-(1-decelFraction))/decelFraction);}
-    else{ delay = minDelay; }
-
-    // 更新燈
+  function nextStep(){
     order.forEach((o,idx)=>{
       const l=o.el.querySelector('.light');
       if(o.el.dataset.center) l.style.background='#fff';
-      else l.style.background = idx===posIndex?'#f00':'#bbb';
+      else l.style.background=idx===pos?'#f00':'#bbb';
     });
-    tickSound.currentTime=0; tickSound.play();
-
+    playTick();
     step++;
-    posIndex = (posIndex+1)%order.length; // 從上一次位置繼續
-
-    if(step<=totalSteps){
-      setTimeout(()=>requestAnimationFrame(animate), delay);
-    } else {
+    if(step>=totalSteps){
       spinning=false;
-      const stop = order[(posIndex-1+order.length)%order.length];
+      const stop = order[pos];
       const letter = stop.el.dataset.letter;
       const cfg = buttonConfig.find(b=>b.ch===letter);
       const gain = cfg?bets[letter]*cfg.mult:0;
-      win += gain; 
+      win+=gain; 
       msg.style.color=gain?'#ff0':'#f00'; 
-      msg.textContent = gain?`押中 ${letter} +${gain}`:`沒中`; 
+      msg.textContent=gain?`押中 ${letter} +${gain}`:`沒中`; 
       updateDigits('win-digits',win);
       setTimeout(()=>{
-        for(let k in bets){bets[k]=0; betCounts[k]=0;}
-        document.querySelectorAll('.count').forEach(c=>c.textContent='0');
+        for(let k in bets){bets[k]=0; betCounts[k]=0;} 
+        document.querySelectorAll('.count').forEach(c=>c.textContent='0'); 
         msg.textContent='';
       },3000);
+      return;
     }
+
+    // 加速與減速
+    let currentDelay;
+    if(step<accelSteps){ currentDelay = maxDelay - (maxDelay-minDelay)*(step/accelSteps); } 
+    else if(step>totalSteps-decelSteps){ const s = step-(totalSteps-decelSteps); currentDelay = minDelay + (maxDelay-minDelay)*(s/decelSteps); } 
+    else { currentDelay = minDelay; }
+
+    pos = (pos+1)%order.length;
+    setTimeout(nextStep,currentDelay);
   }
-  requestAnimationFrame(animate);
+
+  nextStep();
 }
 
-// START按鈕
-document.getElementById('start').onclick = ()=>{
-  if(spinning || Object.values(bets).every(v=>v===0)) return;
-  spin();
+// START 按鈕先啟動 audioCtx，再開始跑燈
+document.getElementById('start').onclick=()=>{
+  audioCtx.resume().then(()=>{
+    if(spinning||Object.values(bets).every(v=>v===0)) return; 
+    spin();
+  });
 };
 </script>
 </body>
