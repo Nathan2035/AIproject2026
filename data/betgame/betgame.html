@@ -14,15 +14,14 @@ body{
   position:relative;
 }
 #container {
-  
-  border:4px solid black; /* 改成黑色大外框 */
-  padding:5px 10px 0px 10px; /* 上下左右間距，上方縮小 */
+  border:4px solid black;
+  padding:5px 10px 0px 10px;
   display:flex;
   flex-direction:column;
   align-items:center;
   margin-top:6px;
 }
-#top{width:358px;display:flex;justify-content:space-between;margin:5px 0px 5px 0px;} /* 上邊距改小 */
+#top{width:358px;display:flex;justify-content:space-between;margin:5px 0px 5px 0px;}
 .panel{width:170px;background:#222;color:#0f0;border:4px solid gold;padding:6px;display:flex;flex-direction:column;align-items:center;}
 .panel-title{font-size:18px;margin-bottom:4px;color:#fff;}
 .digits{display:flex;gap:3px;}
@@ -55,11 +54,9 @@ body{
   box-shadow:0 0 0 #666,inset 0 1px 0 #ccc;
 }
 .bet .count{width:90%;height:20px;line-height:20px;text-align:center;background:#111;border:2px solid #555;color:#f00;font-weight:bold;font-size:18px;box-shadow:0 0 6px #f00,inset 0 0 4px #600;border-radius:3px;font-family:'Courier New',monospace;margin-top:2px;}
-
-/* 開始與功能按鈕 */
 #button-area{display:flex; align-items:center; margin-bottom:10px;}
 #button-area button{
-  width:38px;
+  width:40px;
   height:38px;
   background:linear-gradient(#ffffff,#dcdcdc);
   color:#000;
@@ -76,14 +73,11 @@ body{
   transform:translate(3px,3px);
   box-shadow:0 0 0 #666,inset 0 1px 0 #ccc;
 }
-
-/* 調整特定按鈕位置 */
-#button-area button#start { margin-left: 54px; }
+#button-area button#start { margin-left: 50px; }
 #button-area button#func1 { margin-left: 0px; }
-#button-area button#func2 { margin-left: 54px; }
+#button-area button#func2 { margin-left: 50px; }
 #button-area button#func3 { margin-left: 40px; }
 #button-area button#func4 { margin-left: 10px; }
-
 #top-right{position:absolute;top:10px;right:10px;text-align:center;}
 #top-right button{padding:4px 8px;font-size:14px;cursor:pointer;}
 #top-right div{margin-top:2px;font-size:12px;}
@@ -91,14 +85,12 @@ body{
 </head>
 <body>
 
-<!-- 右上返回上一頁、版本、訪客人數 -->
 <div id="top-right">
   <button onclick="history.back()">返回上一頁</button>
   <div id="version">版本: V0.1</div>
   <div id="visitorCount" style="position:fixed; top:60px; right:10px; font-size:12px; color:#fffff;">訪客人數: <span id="count">0</span></div>
 </div>
 
-<!-- 包含遊戲區及按鈕的黑色外框 -->
 <div id="container">
   <div id="top">
     <div class="panel">
@@ -107,18 +99,17 @@ body{
     </div>
     <div class="panel">
       <div class="panel-title">CREDIT</div>
-      <div class="digits" id="credit-digits"><div class="digit">5</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
+      <div class="digits" id="credit-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">2</div><div class="digit">0</div></div>
     </div>
   </div>
 
   <div id="game"><div id="grid"></div><div id="center-frame"></div><div id="msg"></div></div>
 
-  <!-- 功能與開始按鈕 -->
   <div id="button-area">
-    <button id="func1">功能1</button>
-    <button id="func2">功能2</button>
-    <button id="func3">功能3</button>
-    <button id="func4">功能4</button>
+    <button id="func1">投幣10元</button>
+    <button id="func2">轉到錢包</button>
+    <button id="func3">選左</button>
+    <button id="func4">選右</button>
     <button id="start">開始</button>
   </div>
 
@@ -138,7 +129,7 @@ document.getElementById('count').textContent = totalCount.toString().padStart(5,
 // ===== 遊戲邏輯 =====
 const grid=document.getElementById('grid'); 
 const msg=document.getElementById('msg');
-let credit=5000, win=0; 
+let credit=20, win=0;
 let bets={}, betCounts={}; 
 let spinning=false, pos=0;
 
@@ -166,8 +157,19 @@ for(let r=0;r<7;r++){
     d.textContent=letters[r][c];
     const l=document.createElement('div'); 
     l.className='light';
-    if(r>=1&&r<=5 && c>=1&&c<=5){d.dataset.center='true';d.style.border='1px solid #fff';d.style.color='#fff'; l.style.background='#fff';}
-    else { l.style.background='#bbb'; } 
+    if(r>=1 && r<=5 && c>=1 && c<=5){
+        d.dataset.center='true';
+        d.style.border='1px solid #fff';
+        d.style.color='#fff';
+        if(!(r==3 && (c==2 || c==4))){
+            l.style.background='#fff';
+        } else {
+            l.style.background='#fff';
+            l.style.left='20px'; // 中間兩個燈的位置
+        }
+    } else {
+        l.style.background='#bbb';
+    }
     d.appendChild(l); 
     grid.appendChild(d); 
     cells.push({el:d});
@@ -185,17 +187,28 @@ buttonConfig.forEach(cfg=>{
   const fixed=document.createElement('div'); fixed.className='fixed-number'; fixed.textContent=cfg.mult;
   const btn=document.createElement('button'); btn.textContent=cfg.ch;
   const count=document.createElement('div'); count.className='count'; count.textContent='0';
+
   btn.onclick=()=>{
-    if(spinning||credit<=0||betCounts[cfg.ch]>=9)return; 
-    betCounts[cfg.ch]++; bets[cfg.ch]++; credit--; count.textContent=betCounts[cfg.ch]; 
-    updateDigits('credit-digits',credit);
+    if(spinning) return;
+    if(betCounts[cfg.ch]>=9) return; 
+    if(credit <= 0){
+      msg.style.color = '#f00';
+      msg.textContent = '你破產了';
+      setTimeout(()=>{ msg.textContent = ''; },3000);
+      return;
+    }
+    betCounts[cfg.ch]++; 
+    bets[cfg.ch]++; 
+    credit--; 
+    count.textContent=betCounts[cfg.ch]; 
+    updateDigits('credit-digits', credit);
     playTick();
   };
+  
   wrap.append(fixed,btn,count); 
   betBox.appendChild(wrap);
 });
 
-// Web Audio API 音效
 let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let tickBuffer = null;
 fetch('coin07.mp3').then(r=>r.arrayBuffer()).then(data => audioCtx.decodeAudioData(data)).then(buf => tickBuffer = buf);
@@ -210,7 +223,6 @@ function playTick(){
   source.start();
 }
 
-// 跑燈
 function spin(){
   if(spinning) return;
   spinning=true;
@@ -229,7 +241,6 @@ function spin(){
     playTick();
     step++;
     if(step>=totalSteps){
-      spinning=false;
       const stop = order[pos];
       const letter = stop.el.dataset.letter;
       const cfg = buttonConfig.find(b=>b.ch===letter);
@@ -238,11 +249,17 @@ function spin(){
       msg.style.color=gain?'#ff0':'#f00'; 
       msg.textContent=gain?`押中 ${letter} +${gain}`:`沒中`; 
       updateDigits('win-digits',win);
+
       setTimeout(()=>{
         for(let k in bets){bets[k]=0; betCounts[k]=0;} 
         document.querySelectorAll('.count').forEach(c=>c.textContent='0'); 
         msg.textContent='';
       },3000);
+
+      document.getElementById('start').disabled = true;
+      setTimeout(()=>{document.getElementById('start').disabled=false;},5000);
+
+      spinning=false;
       return;
     }
 
@@ -258,12 +275,23 @@ function spin(){
   nextStep();
 }
 
-// 開始按鈕觸發
 document.getElementById('start').onclick=()=>{
   audioCtx.resume().then(()=>{
     if(spinning||Object.values(bets).every(v=>v===0)) return; 
     spin();
   });
+};
+
+document.getElementById('func1').onclick = () => {
+    credit += 10;
+    updateDigits('credit-digits', credit);
+};
+
+document.getElementById('func2').onclick = () => {
+    credit += win;       
+    win = 0;             
+    updateDigits('credit-digits', credit);
+    updateDigits('win-digits', win);
 };
 </script>
 </body>
