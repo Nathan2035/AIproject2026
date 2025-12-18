@@ -2,118 +2,207 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>AI生成程式首頁</title>
+<title>Generative AI</title>
 <style>
-    body {
-        margin: 0;
-        background: #ffffff;
-        font-family: "Segoe UI", sans-serif;
-        color: #000;
-        overflow: hidden;
-        text-align: center;
-    }
+body {
+    margin: 0;
+    background: linear-gradient(135deg, #a0e0e0, #0abab5);
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: #222;
+    overflow-x: hidden;
+    text-align: center;
+}
 
-    h1 {
-        margin: 20px 0;
-        font-weight: 300;
-        letter-spacing: 2px;
-        opacity: 0.85;
-    }
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 20;
+}
 
-    #bubble-container {
-        position: relative;
-        width: 100vw;
-        height: 75vh;
-    }
+header h1 {
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 1px;
+    font-size: 24px;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
-    .bubble {
-        position: absolute;
-        width: 110px;
-        height: 110px;
-        border-radius: 50%;
-        background:
-            radial-gradient(circle at 35% 30%,
-                rgba(255,255,255,0.5),
-                rgba(255,255,255,0.25) 25%,
-                rgba(255,255,255,0.12) 45%,
-                rgba(255,255,255,0.04) 60%,
-                rgba(255,255,255,0.12) 78%,
-                rgba(255,255,255,0.2) 100%
-            );
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        box-shadow:
-            inset -10px -10px 25px rgba(255,255,255,0.4),
-            inset 10px 10px 25px rgba(0,0,0,0.1),
-            0 0 15px rgba(0,0,0,0.05);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgba(0,0,0,0.7);
-        font-weight: bold;
-        text-decoration: none;
-        opacity: 0.9;
-        transition:
-            transform 0.8s cubic-bezier(.2,.8,.2,1),
-            box-shadow 0.6s ease,
-            opacity 0.6s ease;
-    }
+header nav {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    padding-right: 60px;
+}
 
-    .bubble::before {
-        content: "";
-        position: absolute;
-        top: 12%;
-        left: 18%;
-        width: 38%;
-        height: 38%;
-        border-radius: 50%;
-        background: radial-gradient(
-            circle,
-            rgba(255,255,255,0.8),
-            rgba(255,255,255,0.4),
-            rgba(255,255,255,0)
+header nav a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.3s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 14px;
+}
+
+header nav a:hover {
+    color: #0077ff;
+}
+
+#bubble-container {
+    position: relative;
+    width: 100vw;
+    height: 80vh;
+    margin-top: 80px;
+}
+
+.bubble {
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 35% 30%,
+            rgba(255,255,255,0.5),
+            rgba(255,255,255,0.25) 25%,
+            rgba(255,255,255,0.12) 45%,
+            rgba(255,255,255,0.04) 60%,
+            rgba(255,255,255,0.12) 78%,
+            rgba(255,255,255,0.2) 100%
         );
-        filter: blur(6px);
-        pointer-events: none;
-    }
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow:
+        inset -10px -10px 25px rgba(255,255,255,0.4),
+        inset 10px 10px 25px rgba(0,0,0,0.1),
+        0 0 15px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0,0,0,0.7);
+    font-weight: bold;
+    text-decoration: none;
+    opacity: 0.9;
+    transition:
+        transform 0.8s cubic-bezier(.2,.8,.2,1),
+        box-shadow 0.6s ease,
+        opacity 0.6s ease;
+    font-size: 14px;
+}
 
-    .bubble:hover {
-        opacity: 1;
-        z-index: 10;
-        box-shadow:
-            inset -15px -15px 35px rgba(255,255,255,0.5),
-            inset 15px 15px 35px rgba(0,0,0,0.15),
-            0 0 25px rgba(0,0,0,0.08);
-    }
+.bubble::before {
+    content: "";
+    position: absolute;
+    top: 12%;
+    left: 18%;
+    width: 38%;
+    height: 38%;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(255,255,255,0.8),
+        rgba(255,255,255,0.4),
+        rgba(255,255,255,0)
+    );
+    filter: blur(6px);
+    pointer-events: none;
+}
 
-    #footer {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        padding: 14px;
-        background: rgba(255,255,255,0.9);
-        font-size: 14px;
-        color: #333;
-    }
+.bubble:hover {
+    opacity: 1;
+    z-index: 10;
+    box-shadow:
+        inset -15px -15px 35px rgba(255,255,255,0.5),
+        inset 15px 15px 35px rgba(0,0,0,0.15),
+        0 0 25px rgba(0,0,0,0.08);
+}
+
+.bubble span.date {
+    display: block;
+    font-size: 12px;
+    font-weight: 300;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 14px;
+    background: rgba(255,255,255,0.85);
+    font-size: 14px;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.05);
+}
+
+footer a {
+    color: #000;
+    text-decoration: none;
+    font-weight: normal;
+}
+
+.aboutOverlay {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 600px;
+    padding: 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #222;
+    display: none;
+    z-index: 30;
+    pointer-events: none;
+    background: none;
+    box-shadow: none;
+    text-align: center;
+}
 </style>
 </head>
 <body>
 
-<h1>AI生成程式</h1>
+<header>
+    <h1>Generative AI</h1>
+    <nav>
+        <a id="aboutBtn">About Us</a>
+        <a id="aboutUsBtn">關於我們</a>
+    </nav>
+</header>
 
 <div id="bubble-container"></div>
 
-<div id="footer">
-    👀 訪客人數：<span id="viewCount">0</span> <a href="mailto:poootoooc@gmail.com">🖂</a>
+<div id="aboutOverlay" class="aboutOverlay">
+This is an AI-generated website. All code was created using the free version of ChatGPT, directly inputting prompts to generate code, then manually converting to HTML files. The purpose is to test what a free version of generative AI can achieve at its current level, making AI truly a tool for real human use.
 </div>
 
+<div id="aboutUsOverlay" class="aboutOverlay">
+這是一個AI生成的網站, 所有的程式碼都用免費版的ChatGPT來產生, 直接輸入提示詞產生程式碼, 手動轉成HTML檔, 目的在測試一個免費版的生成式AI, 以目前程度可以做到什麼程度, 讓AI能真的成為真實人類的工具
+</div>
+
+<footer>
+    <a href="mailto:poootoooc@gmail.com">🖂 Nathan</a>
+</footer>
+
 <script>
-/* =========================
-   泡泡資料
-========================= */
 const bubbleData = [
-    { name: "賽豬遊戲", link: "data/horseracing/horseracing.html" },
-    { name: "小瑪莉機台", link: "data/betgame/betgame.html" },
+    { name: "賽豬遊戲", link: "data/horseracing/horseracing.html", date: "2025/12/17" },
+    { name: "小瑪莉機台", link: "data/betgame/betgame.html", date: "2025/12/18" },
     { name: "未來", link: "#" },
     { name: "未來", link: "#" },
     { name: "未來", link: "#" },
@@ -121,30 +210,28 @@ const bubbleData = [
     { name: "未來", link: "#" }
 ];
 
-/* =========================
-   泡泡初始化
-========================= */
 const BASE_SIZE = 110;
 const HOVER_SCALE = 1.9;
-const PADDING = 2; // 調小間距，允許泡泡稍微靠近
+const PADDING = 10; // 增加間距
 const container = document.getElementById("bubble-container");
 
 function getRandomPosition(placed) {
     const containerWidth = window.innerWidth;
-    const containerHeight = window.innerHeight * 0.7;
+    const containerHeight = window.innerHeight * 0.8;
 
-    const ratioX = 0.5;
-    const ratioY = 0.5;
-    const startX = (containerWidth * (1 - ratioX)) / 2;
-    const startY = (containerHeight * (1 - ratioY)) / 2;
-    const effectiveWidth = containerWidth * ratioX;
+    const maxWidth = Math.min(containerWidth, 1000); // 最大寬度限制
+    const ratioX = 0.7;
+    const ratioY = 0.7;
+
+    const effectiveWidth = maxWidth * ratioX;
     const effectiveHeight = containerHeight * ratioY;
+    const startX = (containerWidth - effectiveWidth) / 2;
+    const startY = (containerHeight - effectiveHeight) / 2;
 
-    for (let i = 0; i < 300; i++) {
+    for (let i = 0; i < 3000; i++) { // 大幅增加迴圈
         const x = startX + Math.random() * (effectiveWidth - BASE_SIZE);
         const y = startY + Math.random() * (effectiveHeight - BASE_SIZE);
 
-        // 允許輕微重疊
         let overlap = placed.some(p => {
             const dx = p.x - x;
             const dy = p.y - y;
@@ -165,12 +252,21 @@ function createBubbles() {
         const bubble = document.createElement("a");
         bubble.className = "bubble";
         bubble.href = item.link;
-        bubble.textContent = item.name;
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = item.name;
+        bubble.appendChild(nameSpan);
+
+        if(item.date) {
+            const dateSpan = document.createElement("span");
+            dateSpan.textContent = item.date;
+            dateSpan.className = "date";
+            bubble.appendChild(dateSpan);
+        }
 
         const pos = getRandomPosition(placed);
         bubble.style.left = pos.x + "px";
         bubble.style.top  = pos.y + "px";
-
         placed.push({ x: pos.x, y: pos.y });
 
         bubble.addEventListener("mouseenter", () => {
@@ -187,24 +283,23 @@ function createBubbles() {
 createBubbles();
 window.addEventListener("resize", createBubbles);
 
+const aboutBtn = document.getElementById("aboutBtn");
+const aboutOverlay = document.getElementById("aboutOverlay");
+const aboutUsBtn = document.getElementById("aboutUsBtn");
+const aboutUsOverlay = document.getElementById("aboutUsOverlay");
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-/* =========================
-   瀏覽人數計數（首頁跳轉才加）
-========================= */
-
-// 讀取總訪客數
-let views = localStorage.getItem("siteViews");
-views = views ? parseInt(views) : 0;
-
-// 判斷本次 session 是否已計數
-if (!sessionStorage.getItem("counted")) {
-    views += 1;
-    localStorage.setItem("siteViews", views);
-    sessionStorage.setItem("counted", "true"); // 標記本次 session 已計數
+if(isTouchDevice){
+    aboutBtn.addEventListener("touchstart", () => aboutOverlay.style.display="block");
+    aboutBtn.addEventListener("touchend", () => aboutOverlay.style.display="none");
+    aboutUsBtn.addEventListener("touchstart", () => aboutUsOverlay.style.display="block");
+    aboutUsBtn.addEventListener("touchend", () => aboutUsOverlay.style.display="none");
+} else {
+    aboutBtn.addEventListener("mouseenter", () => aboutOverlay.style.display="block");
+    aboutBtn.addEventListener("mouseleave", () => aboutOverlay.style.display="none");
+    aboutUsBtn.addEventListener("mouseenter", () => aboutUsOverlay.style.display="block");
+    aboutUsBtn.addEventListener("mouseleave", () => aboutUsOverlay.style.display="none");
 }
-
-// 顯示五位數
-document.getElementById("viewCount").innerText = views.toString().padStart(5,'0');
 </script>
 
 </body>
