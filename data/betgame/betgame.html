@@ -17,7 +17,18 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 .cell{display:flex;justify-content:center;align-items:center;font-size:18px;position:relative;background:#fff;border:1px solid #000;}
 .light{width:10px;height:10px;border-radius:50%;position:absolute;top:2px;right:2px;}
 #center-frame{position:absolute;border:6px solid gold;width:240px;height:240px;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
-#msg{position:absolute;top:calc(50% - 50px);left:50%;transform:translate(-50%,-50%);font-size:18px;font-weight:bold;pointer-events:none;}
+#msg{
+  position:absolute;
+  top:calc(50% - 50px);
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:18px;
+  font-weight:bold;
+  pointer-events:none;
+  width: 250px;       /* 訊息框固定寬度 */
+  text-align: center; /* 文字置中 */
+  white-space: nowrap; /* 避免自動換行 */
+}
 
 #bets{margin:10px 0;display:flex;width:356px;justify-content:space-between;gap:4px;}
 .bet{display:flex;flex-direction:column;align-items:center;width:45px;border:2px solid #000;padding:2px;box-sizing:border-box;}
@@ -42,7 +53,7 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 
 <div id="top-right">
   <button onclick="history.back()">返回上一頁</button>
-  <div id="version">版本: V0.2</div>
+  <div id="version">版本: V0.01</div>
   <div id="visitorCount" style="position:fixed; top:60px; right:10px; font-size:12px; color:#fffff;">訪客人數: <span id="count">0</span></div>
 </div>
 
@@ -228,7 +239,7 @@ function spin(){
 
       if(gain>0){
         centerWin = gain; updateDigits('center-win-digits', centerWin);
-        msg.style.color='#f00'; msg.textContent=`押中${letter} 獎金${gain}元`; setTimeout(()=>{ msg.textContent=''; }, 3000);
+        msg.style.color='#f00'; msg.textContent=`押中${letter} 獎金${gain}元,可選左右邊`; setTimeout(()=>{ msg.textContent=''; }, 3000);
 
         const leftLight = document.getElementById('center-left-light');
         const rightLight = document.getElementById('center-right-light');
