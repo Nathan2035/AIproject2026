@@ -41,7 +41,7 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 
 <div id="top-right">
   <button onclick="history.back()">返回上一頁</button>
-  <div id="version">版本: V0.1</div>
+  <div id="version">版本: V0.2</div>
   <div id="visitorCount" style="position:fixed; top:60px; right:10px; font-size:12px; color:#fffff;">訪客人數: <span id="count">0</span></div>
 </div>
 
@@ -177,7 +177,7 @@ buttonConfig.forEach(cfg=>{
   btn.onclick=()=>{ 
     if(spinning) return;
     if(betCounts[cfg.ch]>=9) return; 
-    if(credit <= 0){ msg.style.color = '#f00'; msg.textContent = '你破產了'; setTimeout(()=>{ msg.textContent = ''; },3000); return; }
+    if(credit <= 0){ msg.style.color = '#f00'; msg.textContent = '請投幣'; setTimeout(()=>{ msg.textContent = ''; },3000); return; }
     betCounts[cfg.ch]++; bets[cfg.ch]++; credit--; count.textContent=betCounts[cfg.ch]; updateDigits('credit-digits', credit);
     playCoin();
     win += centerWin; updateDigits('win-digits', win);
@@ -216,7 +216,7 @@ function spin(){
 
       if(gain>0){
         centerWin = gain; updateDigits('center-win-digits', centerWin);
-        msg.style.color='#ff0'; msg.textContent=`押中 ${letter} +${gain}`; setTimeout(()=>{ msg.textContent=''; }, 3000);
+        msg.style.color='#f00'; msg.textContent=`押中 ${letter} +${gain} , 可選左右,獎金加倍`; setTimeout(()=>{ msg.textContent=''; }, 3000);
 
         const leftLight = document.getElementById('center-left-light');
         const rightLight = document.getElementById('center-right-light');
@@ -272,8 +272,8 @@ function stopFlashing(selected){
       if(finalSide===selected){
         centerWin *=2;
         updateDigits('center-win-digits', centerWin);
-        msg.style.color='#ff0';
-        msg.textContent=`選中! 獎金 x2`;
+        msg.style.color='#f00';
+        msg.textContent=`恭喜你! 獎金 x2`;
         setTimeout(()=>{ msg.textContent=''; },3000);
 
         let onLeft = true;
@@ -284,7 +284,7 @@ function stopFlashing(selected){
           onLeft = !onLeft;
         }, 300);
 
-      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent=`沒中`; setTimeout(()=>{ msg.textContent=''; },3000); }
+      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent=`選錯邊了`; setTimeout(()=>{ msg.textContent=''; },3000); }
       return;
     }
     if(count%2===0){ leftLight.style.background='#f00'; rightLight.style.background='#bbb'; }
