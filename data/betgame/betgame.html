@@ -17,7 +17,7 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 .cell{display:flex;justify-content:center;align-items:center;font-size:18px;position:relative;background:#fff;border:1px solid #000;}
 .light{width:10px;height:10px;border-radius:50%;position:absolute;top:2px;right:2px;}
 #center-frame{position:absolute;border:6px solid gold;width:240px;height:240px;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
-#msg{position:absolute;top:calc(50% - 50px);left:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:bold;pointer-events:none;}
+#msg{position:absolute;top:calc(50% - 50px);left:50%;transform:translate(-50%,-50%);font-size:18px;font-weight:bold;pointer-events:none;}
 
 #bets{margin:10px 0;display:flex;width:356px;justify-content:space-between;gap:4px;}
 .bet{display:flex;flex-direction:column;align-items:center;width:45px;border:2px solid #000;padding:2px;box-sizing:border-box;}
@@ -123,7 +123,7 @@ function playCoin(){
 // 遊戲邏輯
 const grid=document.getElementById('grid'); 
 const msg=document.getElementById('msg');
-let credit=20, win=0;
+let credit=0, win=0;
 let bets={}, betCounts={}; 
 let spinning=false, pos=0;
 let centerWin=0;
@@ -137,7 +137,7 @@ function updateDigits(id,val){
 
 // 建立格子
 const letters=Array(7).fill(0).map(()=>Array(7).fill(''));
-letters[0][0]='A';letters[6][6]='A'; letters[0][1]='B'; letters[6][5]='B';
+letters[0][0]='🍊';letters[6][6]='🍊'; letters[0][1]='B'; letters[6][5]='B';
 letters[0][2]='C'; letters[0][5]='C'; letters[2][6]='C'; letters[5][6]='C';
 letters[6][4]='C';letters[6][1]='C'; letters[4][0]='C'; letters[1][0]='C';
 letters[0][3]='D'; letters[0][4]='E'; letters[2][0]='E'; letters[4][6]='E';
@@ -167,7 +167,7 @@ for(let r=0;r<7;r++){
 
 let order=[]; for(let c=0;c<7;c++) order.push(cells[c]); for(let r=1;r<6;r++) order.push(cells[r*7+6]); for(let c=6;c>=0;c--) order.push(cells[6*7+c]); for(let r=5;r>0;r--) order.push(cells[r*7]);
 
-const buttonConfig=[{ch:'E',mult:5},{ch:'G',mult:20},{ch:'I',mult:30},{ch:'H',mult:40},{ch:'D',mult:50},{ch:'B',mult:20},{ch:'F',mult:15},{ch:'A',mult:10},{ch:'C',mult:2}];
+const buttonConfig=[{ch:'E',mult:5},{ch:'G',mult:20},{ch:'I',mult:30},{ch:'H',mult:40},{ch:'D',mult:50},{ch:'B',mult:20},{ch:'F',mult:15},{ch:'🍊',mult:10},{ch:'C',mult:2}];
 const betBox=document.getElementById('bets');
 buttonConfig.forEach(cfg=>{
   bets[cfg.ch]=0; betCounts[cfg.ch]=0;
@@ -217,7 +217,7 @@ function spin(){
 
       if(gain>0){
         centerWin = gain; updateDigits('center-win-digits', centerWin);
-        msg.style.color='#f00'; msg.textContent=`押中 ${letter} +${gain} , 可選左右,獎金加倍`; setTimeout(()=>{ msg.textContent=''; }, 3000);
+        msg.style.color='#f00'; msg.textContent=`押中${letter} 獎金${gain}元 ,可選左右鍵`; setTimeout(()=>{ msg.textContent=''; }, 3000);
 
         const leftLight = document.getElementById('center-left-light');
         const rightLight = document.getElementById('center-right-light');
@@ -229,7 +229,7 @@ function spin(){
           onLeft = !onLeft;
         }, 300);
 
-      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent='沒中'; setTimeout(()=>{ msg.textContent=''; },3000); }
+      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent='沒押中'; setTimeout(()=>{ msg.textContent=''; },3000); }
 
       document.querySelectorAll('.count').forEach(c=>c.textContent='0'); 
       for(let k in bets){bets[k]=0; betCounts[k]=0;} 
