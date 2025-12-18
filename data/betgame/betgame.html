@@ -26,7 +26,7 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 </style>
 </head>
 <body>
-1
+2
 <div id="top">
 <div class="panel"><div class="panel-title">WIN</div><div class="digits" id="win-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div></div>
 <div class="panel"><div class="panel-title">CREDIT</div><div class="digits" id="credit-digits"><div class="digit">5</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div></div>
@@ -102,7 +102,7 @@ buttonConfig.forEach(cfg=>{
   betBox.appendChild(wrap);
 });
 
-// Web Audio API 音效，音量 30%，長度限制 500ms
+// Web Audio API 音效，音量 10%
 let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let tickBuffer = null;
 
@@ -116,10 +116,8 @@ function playTick(){
   const source = audioCtx.createBufferSource();
   source.buffer = tickBuffer;
   const gainNode = audioCtx.createGain();
-  gainNode.gain.value = 0.3; // 音量 30%
+  gainNode.gain.value = 0.1; // 音量 30%
   source.connect(gainNode).connect(audioCtx.destination);
-  source.start();
-  source.stop(audioCtx.currentTime + 0.3); // 只播放 300ms
 }
 
 // 跑燈
