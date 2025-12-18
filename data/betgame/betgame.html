@@ -34,12 +34,15 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 <div id="bets"></div><button id="start">START</button>
 
 <script>
+// 變數
 const grid=document.getElementById('grid'); 
 const msg=document.getElementById('msg');
 let credit=5000, win=0; 
 let bets={}, betCounts={}; 
-let spinning=false, pos=0;
+let spinning=false; 
+let posIndex=0; // 記錄當前燈位置
 
+// 更新數字
 function updateDigits(id,val){
   const s=val.toString().padStart(4,'0'); 
   const d=document.getElementById(id).children; 
@@ -51,17 +54,26 @@ const letters=Array(7).fill(0).map(()=>Array(7).fill(''));
 letters[0][0]='A';letters[6][6]='A'; letters[0][1]='B'; letters[6][5]='B';
 letters[0][2]='C';letters[0][5]='C'; letters[2][6]='C'; letters[5][6]='C';
 letters[6][4]='C';letters[6][1]='C'; letters[4][0]='C'; letters[1][0]='C';
-letters[0][3]='D'; letters[0][4]='E'; letters[2][0]='E'; letters[4][6]='E';
-letters[6][2]='E'; letters[0][6]='F'; letters[6][0]='F'; letters[1][6]='G';
+letters[0][3]='D'; letters[0][4]='E';letters[2][0]='E';letters[4][6]='E';
+letters[6][2]='E';letters[0][6]='F';letters[6][0]='F';letters[1][6]='G';
 letters[6][3]='H'; letters[5][0]='I';
 
 let cells=[]; 
-for(let r=0;r<7;r++){for(let c=0;c<7;c++){
-  const d=document.createElement('div'); d.className='cell'; d.dataset.letter=letters[r][c]; d.textContent=letters[r][c];
-  const l=document.createElement('div'); l.className='light';
-  if(r>=1&&r<=5 && c>=1&&c<=5){d.dataset.center='true';d.style.border='1px solid #fff';d.style.color='#fff'; l.style.background='#fff';}
-  else { l.style.background='#bbb'; } // 初始灰色燈
-  d.appendChild(l); grid.appendChild(d); cells.push({el:d});}}
+for(let r=0;r<7;r++){
+  for(let c=0;c<7;c++){
+    const d=document.createElement('div'); 
+    d.className='cell'; 
+    d.dataset.letter=letters[r][c]; 
+    d.textContent=letters[r][c];
+    const l=document.createElement('div'); 
+    l.className='light';
+    if(r>=1&&r<=5 && c>=1&&c<=5){ d.dataset.center='true'; d.style.border='1px solid #fff'; d.style.color='#fff'; l.style.background='#fff'; }
+    else { l.style.background='#bbb'; } // 初始灰色
+    d.appendChild(l); 
+    grid.appendChild(d); 
+    cells.push({el:d});
+  }
+}
 
 // 設定跑燈順序
 let order=[];for(let c=0;c<7;c++) order.push(cells[c]);
@@ -69,8 +81,12 @@ for(let r=1;r<6;r++) order.push(cells[r*7+6]);
 for(let c=6;c>=0;c--) order.push(cells[6*7+c]);
 for(let r=5;r>0;r--) order.push(cells[r*7]);
 
+// 按鈕設定
 const buttonConfig=[{ch:'E',mult:5},{ch:'G',mult:20},{ch:'I',mult:30},{ch:'H',mult:40},{ch:'D',mult:50},{ch:'B',mult:20},{ch:'F',mult:15},{ch:'A',mult:10},{ch:'C',mult:2}];
 const betBox=document.getElementById('bets');
+const tickSound = new Audio('coin07.mp3'); 
+tickSound.volume = 0.6;
+
 buttonConfig.forEach(cfg=>{
   bets[cfg.ch]=0; betCounts[cfg.ch]=0;
   const wrap=document.createElement('div'); wrap.className='bet';
@@ -78,63 +94,54 @@ buttonConfig.forEach(cfg=>{
   const btn=document.createElement('button'); btn.textContent=cfg.ch;
   const count=document.createElement('div'); count.className='count'; count.textContent='0';
   btn.onclick=()=>{
-    if(spinning||credit<=0||betCounts[cfg.ch]>=9)return; 
-    betCounts[cfg.ch]++; bets[cfg.ch]++; credit--; 
-    count.textContent=betCounts[cfg.ch]; 
-    updateDigits('credit-digits',credit); 
-    const coinSound = new Audio('coin07.mp3'); coinSound.volume=0.6; coinSound.play();
+    if(spinning||credit<=0||betCounts[cfg.ch]>=9) return;
+    betCounts[cfg.ch]++; bets[cfg.ch]++; credit--; count.textContent=betCounts[cfg.ch]; updateDigits('credit-digits',credit);
+    tickSound.currentTime=0; tickSound.play();
   };
   wrap.append(fixed,btn,count); betBox.appendChild(wrap);
 });
 
-// 跑燈用時間控制
+// 固定時間控制跑燈
 function spin(){
   if(spinning) return;
   spinning=true;
-
   const totalSteps = order.length*4 + Math.floor(Math.random()*order.length);
-  const minDelay = 50; // ms
-  const maxDelay = 300; // ms
-  const accelSteps = totalSteps*0.25;
-  const decelSteps = totalSteps*0.25;
+  let step=0;
+  const startTime = performance.now();
+  const accelFraction = 0.25, decelFraction = 0.25;
+  const minDelay = 50, maxDelay = 300;
 
-  let startTime = null;
-  let step = 0;
-  let lastStepTime = 0;
+  function animate(time){
+    const fraction = step/totalSteps;
 
-  function animate(timestamp){
-    if(!startTime) startTime=timestamp;
-    const elapsed = timestamp - lastStepTime;
+    // 計算當前延遲
+    let delay;
+    if(fraction<accelFraction){ delay = maxDelay - (maxDelay-minDelay)*(fraction/accelFraction);}
+    else if(fraction>1-decelFraction){ delay = minDelay + (maxDelay-minDelay)*((fraction-(1-decelFraction))/decelFraction);}
+    else{ delay = minDelay; }
 
-    let targetDelay;
-    if(step<accelSteps) targetDelay = maxDelay - (maxDelay-minDelay)*(step/accelSteps);
-    else if(step>totalSteps-decelSteps){ const s = step-(totalSteps-decelSteps); targetDelay = minDelay + (maxDelay-minDelay)*(s/decelSteps);}
-    else targetDelay = minDelay;
+    // 更新燈
+    order.forEach((o,idx)=>{
+      const l=o.el.querySelector('.light');
+      if(o.el.dataset.center) l.style.background='#fff';
+      else l.style.background = idx===posIndex?'#f00':'#bbb';
+    });
+    tickSound.currentTime=0; tickSound.play();
 
-    if(elapsed >= targetDelay){
-      // 更新燈
-      order.forEach((o,idx)=>{
-        const l=o.el.querySelector('.light');
-        if(o.el.dataset.center) l.style.background='#fff';
-        else l.style.background=idx===pos?'#f00':'#bbb';
-      });
-      lastStepTime = timestamp;
-      pos = (pos+1)%order.length;
-      step++;
-      const tick = new Audio('correct_answer2.mp3'); tick.volume=0.6; tick.play();
-    }
+    step++;
+    posIndex = (posIndex+1)%order.length; // 從上一次位置繼續
 
-    if(step<totalSteps){
-      requestAnimationFrame(animate);
+    if(step<=totalSteps){
+      setTimeout(()=>requestAnimationFrame(animate), delay);
     } else {
       spinning=false;
-      const stop = order[(pos-1+order.length)%order.length];
+      const stop = order[(posIndex-1+order.length)%order.length];
       const letter = stop.el.dataset.letter;
       const cfg = buttonConfig.find(b=>b.ch===letter);
       const gain = cfg?bets[letter]*cfg.mult:0;
-      win+=gain;
-      msg.style.color=gain?'#ff0':'#f00';
-      msg.textContent=gain?`押中 ${letter} +${gain}`:`沒中`;
+      win += gain; 
+      msg.style.color=gain?'#ff0':'#f00'; 
+      msg.textContent = gain?`押中 ${letter} +${gain}`:`沒中`; 
       updateDigits('win-digits',win);
       setTimeout(()=>{
         for(let k in bets){bets[k]=0; betCounts[k]=0;}
@@ -143,11 +150,14 @@ function spin(){
       },3000);
     }
   }
-
   requestAnimationFrame(animate);
 }
 
-document.getElementById('start').onclick=()=>{if(spinning||Object.values(bets).every(v=>v===0)) return; spin();};
+// START按鈕
+document.getElementById('start').onclick = ()=>{
+  if(spinning || Object.values(bets).every(v=>v===0)) return;
+  spin();
+};
 </script>
 </body>
 </html>
