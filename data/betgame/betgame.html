@@ -65,7 +65,7 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
     </div>
     <div class="panel">
       <div class="panel-title">CREDIT</div>
-      <div class="digits" id="credit-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">2</div><div class="digit">0</div></div>
+      <div class="digits" id="credit-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
     </div>
   </div>
 
@@ -307,7 +307,7 @@ function stopFlashing(selected){
           onLeft = !onLeft;
         }, 300);
 
-      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent=`選錯邊了`; setTimeout(()=>{ msg.textContent=''; },3000); }
+      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent=`選錯邊了, 獎金歸零`; setTimeout(()=>{ msg.textContent=''; },3000); }
       return;
     }
     if(count%2===0){ leftLight.style.background='#f00'; rightLight.style.background='#bbb'; }
