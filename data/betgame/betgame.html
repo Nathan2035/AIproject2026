@@ -4,8 +4,25 @@
 <meta charset="UTF-8">
 <title>小瑪莉跑燈機台</title>
 <style>
-body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:column;align-items:center;position:relative;}
-#top{width:348px;display:flex;justify-content:space-between;margin:10px 0;}
+body{
+  margin:0;
+  background:#fff;
+  font-family:Arial;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  position:relative;
+}
+#container {
+  
+  border:4px solid black; /* 改成黑色大外框 */
+  padding:5px 10px 0px 10px; /* 上下左右間距，上方縮小 */
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-top:6px;
+}
+#top{width:358px;display:flex;justify-content:space-between;margin:5px 0px 5px 0px;} /* 上邊距改小 */
 .panel{width:170px;background:#222;color:#0f0;border:4px solid gold;padding:6px;display:flex;flex-direction:column;align-items:center;}
 .panel-title{font-size:18px;margin-bottom:4px;color:#fff;}
 .digits{display:flex;gap:3px;}
@@ -19,10 +36,54 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 #bets{margin:10px 0;display:flex;width:356px;justify-content:space-between;gap:4px;}
 .bet{display:flex;flex-direction:column;align-items:center;width:45px;border:2px solid #000;padding:2px;box-sizing:border-box;}
 .fixed-number{width:100%;height:18px;background:#ccc;border:1px solid #555;font-size:14px;font-weight:bold;display:flex;justify-content:center;align-items:center;margin-bottom:2px;font-family:'Courier New',monospace;}
-.bet button{width:100%;height:25px;background:linear-gradient(#ffffff,#dcdcdc);color:#000;border:1px solid #666;border-radius:6px;cursor:pointer;font-weight:bold;font-size:14px;margin-bottom:4px;box-shadow:2px 2px 0 #bbb, inset 0 1px 0 #fff;transition:transform 0.05s, box-shadow 0.05s;}
-.bet button:active{transform:translate(3px,3px);box-shadow:0 0 0 #666,inset 0 1px 0 #ccc;}
+.bet button{
+  width:100%;
+  height:25px;
+  background:linear-gradient(#ffffff,#dcdcdc);
+  color:#000;
+  border:1px solid #666;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:bold;
+  font-size:14px;
+  margin-bottom:4px;
+  box-shadow:2px 2px 0 #bbb, inset 0 1px 0 #fff;
+  transition:transform 0.05s, box-shadow 0.05s;
+}
+.bet button:active{
+  transform:translate(3px,3px);
+  box-shadow:0 0 0 #666,inset 0 1px 0 #ccc;
+}
 .bet .count{width:90%;height:20px;line-height:20px;text-align:center;background:#111;border:2px solid #555;color:#f00;font-weight:bold;font-size:18px;box-shadow:0 0 6px #f00,inset 0 0 4px #600;border-radius:3px;font-family:'Courier New',monospace;margin-top:2px;}
-#start{width:120px;height:40px;background:#0a0;border:none;color:#fff;font-weight:bold;cursor:pointer;margin-bottom:10px;}
+
+/* 開始與功能按鈕 */
+#button-area{display:flex; align-items:center; margin-bottom:10px;}
+#button-area button{
+  width:38px;
+  height:38px;
+  background:linear-gradient(#ffffff,#dcdcdc);
+  color:#000;
+  border:1px solid #666;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12px;
+  margin-left:25px;
+  margin-bottom:-10px;
+  box-shadow:2px 2px 0 #bbb, inset 0 1px 0 #fff;
+  transition:transform 0.05s, box-shadow 0.05s;
+}
+#button-area button:active{
+  transform:translate(3px,3px);
+  box-shadow:0 0 0 #666,inset 0 1px 0 #ccc;
+}
+
+/* 調整特定按鈕位置 */
+#button-area button#start { margin-left: 54px; }
+#button-area button#func1 { margin-left: 0px; }
+#button-area button#func2 { margin-left: 54px; }
+#button-area button#func3 { margin-left: 40px; }
+#button-area button#func4 { margin-left: 10px; }
+
 #top-right{position:absolute;top:10px;right:10px;text-align:center;}
 #top-right button{padding:4px 8px;font-size:14px;cursor:pointer;}
 #top-right div{margin-top:2px;font-size:12px;}
@@ -34,35 +95,45 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 <div id="top-right">
   <button onclick="history.back()">返回上一頁</button>
   <div id="version">版本: V0.1</div>
-  <div id="visitor-count"></div>
+  <div id="visitorCount" style="position:fixed; top:60px; right:10px; font-size:12px; color:#fffff;">訪客人數: <span id="count">0</span></div>
 </div>
 
-<div id="top">
-  <div class="panel">
-    <div class="panel-title">WIN</div>
-    <div class="digits" id="win-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
+<!-- 包含遊戲區及按鈕的黑色外框 -->
+<div id="container">
+  <div id="top">
+    <div class="panel">
+      <div class="panel-title">WIN</div>
+      <div class="digits" id="win-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">CREDIT</div>
+      <div class="digits" id="credit-digits"><div class="digit">5</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
+    </div>
   </div>
-  <div class="panel">
-    <div class="panel-title">CREDIT</div>
-    <div class="digits" id="credit-digits"><div class="digit">5</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
-  </div>
-</div>
 
-<div id="game"><div id="grid"></div><div id="center-frame"></div><div id="msg"></div></div>
-<div id="bets"></div>
-<button id="start">START</button>
+  <div id="game"><div id="grid"></div><div id="center-frame"></div><div id="msg"></div></div>
+
+  <!-- 功能與開始按鈕 -->
+  <div id="button-area">
+    <button id="func1">功能1</button>
+    <button id="func2">功能2</button>
+    <button id="func3">功能3</button>
+    <button id="func4">功能4</button>
+    <button id="start">開始</button>
+  </div>
+
+  <div id="bets"></div>
+</div>
 
 <script>
-// ===== 訪客人數 =====
-let visitorCountEl = document.getElementById('visitor-count');
-let visitorKey = 'visitorCountV01';
-let fromHome = document.referrer && (new URL(document.referrer)).pathname === '/';
-if(fromHome){
-  let count = parseInt(localStorage.getItem(visitorKey)||'0') + 1;
-  localStorage.setItem(visitorKey,count);
+//訪客計數器
+let totalCount = parseInt(localStorage.getItem('visitorCount') || '0');
+if (!sessionStorage.getItem('visited')) {
+    totalCount++;
+    localStorage.setItem('visitorCount', totalCount);
+    sessionStorage.setItem('visited', 'true');
 }
-let finalCount = parseInt(localStorage.getItem(visitorKey)||'0').toString().padStart(5,'0');
-visitorCountEl.textContent = `訪客人數: ${finalCount}`;
+document.getElementById('count').textContent = totalCount.toString().padStart(5, '0');
 
 // ===== 遊戲邏輯 =====
 const grid=document.getElementById('grid'); 
@@ -96,24 +167,16 @@ for(let r=0;r<7;r++){
     const l=document.createElement('div'); 
     l.className='light';
     if(r>=1&&r<=5 && c>=1&&c<=5){d.dataset.center='true';d.style.border='1px solid #fff';d.style.color='#fff'; l.style.background='#fff';}
-    else { l.style.background='#bbb'; } // 初始灰色燈
+    else { l.style.background='#bbb'; } 
     d.appendChild(l); 
     grid.appendChild(d); 
     cells.push({el:d});
   }
 }
 
-let order=[];
-for(let c=0;c<7;c++) order.push(cells[c]);
-for(let r=1;r<6;r++) order.push(cells[r*7+6]);
-for(let c=6;c>=0;c--) order.push(cells[6*7+c]);
-for(let r=5;r>0;r--) order.push(cells[r*7]);
+let order=[]; for(let c=0;c<7;c++) order.push(cells[c]); for(let r=1;r<6;r++) order.push(cells[r*7+6]); for(let c=6;c>=0;c--) order.push(cells[6*7+c]); for(let r=5;r>0;r--) order.push(cells[r*7]);
 
-const buttonConfig=[
-  {ch:'E',mult:5},{ch:'G',mult:20},{ch:'I',mult:30},
-  {ch:'H',mult:40},{ch:'D',mult:50},{ch:'B',mult:20},
-  {ch:'F',mult:15},{ch:'A',mult:10},{ch:'C',mult:2}
-];
+const buttonConfig=[{ch:'E',mult:5},{ch:'G',mult:20},{ch:'I',mult:30},{ch:'H',mult:40},{ch:'D',mult:50},{ch:'B',mult:20},{ch:'F',mult:15},{ch:'A',mult:10},{ch:'C',mult:2}];
 
 const betBox=document.getElementById('bets');
 buttonConfig.forEach(cfg=>{
@@ -132,21 +195,17 @@ buttonConfig.forEach(cfg=>{
   betBox.appendChild(wrap);
 });
 
-// Web Audio API 音效，音量 10%
+// Web Audio API 音效
 let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let tickBuffer = null;
-
-fetch('coin07.mp3')
-  .then(r=>r.arrayBuffer())
-  .then(data => audioCtx.decodeAudioData(data))
-  .then(buf => tickBuffer = buf);
+fetch('coin07.mp3').then(r=>r.arrayBuffer()).then(data => audioCtx.decodeAudioData(data)).then(buf => tickBuffer = buf);
 
 function playTick(){
   if(!tickBuffer) return;
   const source = audioCtx.createBufferSource();
   source.buffer = tickBuffer;
   const gainNode = audioCtx.createGain();
-  gainNode.gain.value = 0.1; // 音量 10%
+  gainNode.gain.value = 0.1;
   source.connect(gainNode).connect(audioCtx.destination);
   source.start();
 }
@@ -199,7 +258,7 @@ function spin(){
   nextStep();
 }
 
-// START 按鈕先啟動 audioCtx，再開始跑燈
+// 開始按鈕觸發
 document.getElementById('start').onclick=()=>{
   audioCtx.resume().then(()=>{
     if(spinning||Object.values(bets).every(v=>v===0)) return; 
