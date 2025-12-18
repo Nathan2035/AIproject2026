@@ -101,7 +101,7 @@ buttonConfig.forEach(cfg=>{
   betBox.appendChild(wrap);
 });
 
-// Web Audio API 音效
+// Web Audio API 音效，音量縮小50%
 let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let tickBuffer = null;
 
@@ -114,7 +114,9 @@ function playTick(){
   if(!tickBuffer) return;
   const source = audioCtx.createBufferSource();
   source.buffer = tickBuffer;
-  source.connect(audioCtx.destination);
+  const gainNode = audioCtx.createGain();
+  gainNode.gain.value = 0.5; // 音量 50%
+  source.connect(gainNode).connect(audioCtx.destination);
   source.start();
 }
 
