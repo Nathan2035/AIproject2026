@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>小瑪莉跑燈機台</title>
 <style>
-/* CSS 與之前完全相同 */
 body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:column;align-items:center;position:relative;}
 #container{border:4px solid black;padding:5px 10px 0px 10px;display:flex;flex-direction:column;align-items:center;margin-top:6px;}
 #top{width:358px;display:flex;justify-content:space-between;margin:5px 0px 5px 0px;}
@@ -41,7 +40,7 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 
 <div id="top-right">
   <button onclick="history.back()">返回上一頁</button>
-  <div id="version">版本: V0.2</div>
+  <div id="version">版本: V0.1</div>
   <div id="visitorCount" style="position:fixed; top:60px; right:10px; font-size:12px; color:#fffff;">訪客人數: <span id="count">0</span></div>
 </div>
 
@@ -101,9 +100,20 @@ if (!sessionStorage.getItem('visited')) {
 }
 document.getElementById('count').textContent = totalCount.toString().padStart(5, '0');
 
-// 音效設定
-const coinAudio = new Audio('coin07.mp3'); coinAudio.volume = 0.2;
-function playCoin(){ coinAudio.currentTime=0; coinAudio.play(); }
+// 音效設定（iPad/低 CPU 優化）
+const coinSounds = [];
+for(let i=0;i<5;i++){
+  const a = new Audio('coin07.mp3');
+  a.volume = 0.2;
+  coinSounds.push(a);
+}
+let coinIndex = 0;
+function playCoin(){
+  const audio = coinSounds[coinIndex];
+  audio.currentTime = 0;
+  audio.play();
+  coinIndex = (coinIndex + 1) % coinSounds.length;
+}
 
 // 遊戲邏輯
 const grid=document.getElementById('grid'); 
@@ -269,22 +279,19 @@ function stopFlashing(selected){
           else { leftLight.style.background='#bbb'; rightLight.style.background='#f00'; }
           onLeft = !onLeft;
         }, 300);
-
       } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent=`沒中`; setTimeout(()=>{ msg.textContent=''; },3000); }
       return;
     }
     if(count%2===0){ leftLight.style.background='#f00'; rightLight.style.background='#bbb'; }
-    else{ leftLight.style.background='#bbb'; rightLight.style.background='#f00'; }
-    playCoin();
+    else { leftLight.style.background='#bbb'; rightLight.style.background='#f00'; }
     count++;
-    setTimeout(slowStep,200);
+    setTimeout(slowStep,150);
   }
   slowStep();
 }
 
-document.getElementById('func3').onclick=()=>{ stopFlashing('left'); }
-document.getElementById('func4').onclick=()=>{ stopFlashing('right'); }
-
+document.getElementById('func3').onclick=()=>{ stopFlashing('left'); };
+document.getElementById('func4').onclick=()=>{ stopFlashing('right'); };
 </script>
 </body>
 </html>
