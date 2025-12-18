@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>小瑪莉跑燈機台</title>
 <style>
-body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:column;align-items:center;}
+body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:column;align-items:center;position:relative;}
 #top{width:348px;display:flex;justify-content:space-between;margin:10px 0;}
 .panel{width:170px;background:#222;color:#0f0;border:4px solid gold;padding:6px;display:flex;flex-direction:column;align-items:center;}
 .panel-title{font-size:18px;margin-bottom:4px;color:#fff;}
@@ -23,18 +23,48 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 .bet button:active{transform:translate(3px,3px);box-shadow:0 0 0 #666,inset 0 1px 0 #ccc;}
 .bet .count{width:90%;height:20px;line-height:20px;text-align:center;background:#111;border:2px solid #555;color:#f00;font-weight:bold;font-size:18px;box-shadow:0 0 6px #f00,inset 0 0 4px #600;border-radius:3px;font-family:'Courier New',monospace;margin-top:2px;}
 #start{width:120px;height:40px;background:#0a0;border:none;color:#fff;font-weight:bold;cursor:pointer;margin-bottom:10px;}
+#top-right{position:absolute;top:10px;right:10px;text-align:center;}
+#top-right button{padding:4px 8px;font-size:14px;cursor:pointer;}
+#top-right div{margin-top:2px;font-size:12px;}
 </style>
 </head>
 <body>
-3
-<div id="top">
-<div class="panel"><div class="panel-title">WIN</div><div class="digits" id="win-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div></div>
-<div class="panel"><div class="panel-title">CREDIT</div><div class="digits" id="credit-digits"><div class="digit">5</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div></div>
+
+<!-- 右上返回上一頁、版本、訪客人數 -->
+<div id="top-right">
+  <button onclick="history.back()">返回上一頁</button>
+  <div id="version">版本: V0.1</div>
+  <div id="visitor-count"></div>
 </div>
+
+<div id="top">
+  <div class="panel">
+    <div class="panel-title">WIN</div>
+    <div class="digits" id="win-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">CREDIT</div>
+    <div class="digits" id="credit-digits"><div class="digit">5</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
+  </div>
+</div>
+
 <div id="game"><div id="grid"></div><div id="center-frame"></div><div id="msg"></div></div>
-<div id="bets"></div><button id="start">START</button>
+<div id="bets"></div>
+<button id="start">START</button>
 
 <script>
+// ===== 訪客人數 =====
+let visitorCountEl = document.getElementById('visitor-count');
+let visitorKey = 'visitorCountV01';
+let fromHome = document.referrer && (new URL(document.referrer)).pathname === '/';
+if(fromHome){
+  let count = parseInt(localStorage.getItem(visitorKey)||'0') + 1;
+  localStorage.setItem(visitorKey,count);
+}
+let finalCount = parseInt(localStorage.getItem(visitorKey)||'0').toString().padStart(5,'0');
+visitorCountEl.textContent = `訪客人數: ${finalCount}`;
+
+// ===== 遊戲邏輯 =====
 const grid=document.getElementById('grid'); 
 const msg=document.getElementById('msg');
 let credit=5000, win=0; 
@@ -119,7 +149,6 @@ function playTick(){
   gainNode.gain.value = 0.1; // 音量 10%
   source.connect(gainNode).connect(audioCtx.destination);
   source.start();
- 
 }
 
 // 跑燈
