@@ -111,13 +111,13 @@ body{
     <!-- 左燈與標籤 -->
     <div style="position:absolute; top:50%; left:40%; transform:translate(-50%,-50%); text-align:center;">
       <div id="center-left-light" class="light" style="background:#bbb; width:14px; height:14px;"></div>
-      <div style="font-size:12px; color:#000; margin-top:15px;">左</div>
+      <div style="font-size:18px; color:#000; margin-top:15px;">左</div>
     </div>
 
     <!-- 右燈與標籤 -->
-    <div style="position:absolute; top:50%; left:63%; transform:translate(-50%,-50%); text-align:center;">
+    <div style="position:absolute; top:50%; left:60%; transform:translate(-50%,-50%); text-align:center;">
       <div id="center-right-light" class="light" style="background:#bbb; width:14px; height:14px;"></div>
-      <div style="font-size:12px; color:#000; margin-top:15px;">右</div>
+      <div style="font-size:18px; color:#000; margin-top:15px;">右</div>
     </div>
 
     <!-- 中間四位數字框（顯示押中金額） -->
@@ -142,6 +142,19 @@ body{
 </div>
 
 <script>
+// Web Audio 播放 coin07.mp3
+const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+let coinBuffer=null;
+fetch('coin07.mp3').then(r=>r.arrayBuffer()).then(b=>audioCtx.decodeAudioData(b)).then(buf=>coinBuffer=buf);
+function playCoin(){
+  if(!coinBuffer) return;
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  const src = audioCtx.createBufferSource();
+  src.buffer = coinBuffer;
+  src.connect(audioCtx.destination);
+  src.start();
+}
+
 //訪客計數器
 let totalCount = parseInt(localStorage.getItem('visitorCount') || '0');
 if (!sessionStorage.getItem('visited')) {
@@ -208,6 +221,7 @@ buttonConfig.forEach(cfg=>{
   const count=document.createElement('div'); count.className='count'; count.textContent='0';
 
   btn.onclick=()=>{ 
+    playCoin(); // 播放音效
     if(spinning) return;
     if(betCounts[cfg.ch]>=9) return; 
     if(credit <= 0){
@@ -244,6 +258,7 @@ buttonConfig.forEach(cfg=>{
 
 // 投幣
 document.getElementById('func1').onclick = () => {
+    playCoin(); // 播放音效
     credit += 10;
     updateDigits('credit-digits', credit);
 };
