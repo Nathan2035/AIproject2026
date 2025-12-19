@@ -12,7 +12,7 @@ h1 { margin-bottom: 20px; color: #333333; }
     display: flex; align-items: center; justify-content: center; font-size: 24px;
     background-color: white; color: black; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
     position: absolute;
-    z-index: 10; /* 疊在桌面上 */
+    z-index: 10;
 }
 .back { background-color: gray; color: gray; }
 .red { color: red; }
@@ -65,7 +65,7 @@ select { font-size: 16px; padding: 5px; margin-right: 5px; }
 <body>
 
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.01</div>
+<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.02</div>
 
 <h1>德州撲克對戰</h1>
 
@@ -148,36 +148,45 @@ const computerPositions = [
   {top: "40px", left: "490px"}
 ];
 
-function showHand(hand, elementId, hide=false){
+function showSingleCard(card, elementId, index, hide) {
     const container = document.getElementById(elementId);
-    container.innerHTML = "";
     const positions = elementId === "player-hand" ? playerPositions : computerPositions;
-
-    for(let i=0; i<hand.length; i++){
-        let c = hand[i];
-        let div = document.createElement("div");
-        div.className = "card" + (hide ? " back" : "");
-        div.textContent = hide ? "" : c.value + c.suit;
-        if(!hide && (c.suit==="♥"||c.suit==="♦")) div.classList.add("red");
-
-        div.style.top = positions[i].top;
-        div.style.left = positions[i].left;
-
-        container.appendChild(div);
-    }
+    
+    let div = document.createElement("div");
+    div.className = "card" + (hide ? " back" : "");
+    div.textContent = hide ? "" : card.value + card.suit;
+    if (!hide && (card.suit === "♥" || card.suit === "♦")) div.classList.add("red");
+    
+    div.style.top = positions[index].top;
+    div.style.left = positions[index].left;
+    
+    container.appendChild(div);
 }
 
 let playerHand=[], maryHand=[], deck=[];
 let chips=100;
 let currentBet=0;
 
-function initGame(){
-    deck=createDeck();
-    playerHand=drawCards(deck,5);
-    maryHand=drawCards(deck,5);
-    showHand(playerHand,"player-hand");
-    showHand(maryHand,"computer-hand",true);
-    document.getElementById("message").textContent="";
+async function dealCardsAnimation() {
+    deck = createDeck();
+    playerHand = drawCards(deck, 5);
+    maryHand = drawCards(deck, 5);
+    
+    document.getElementById("player-hand").innerHTML = "";
+    document.getElementById("computer-hand").innerHTML = "";
+    document.getElementById("message").textContent = "";
+    
+    const maxCards = 5;
+    for (let i = 0; i < maxCards; i++) {
+        // 玩家發牌
+        showSingleCard(playerHand[i], "player-hand", i, false);
+        await new Promise(r => setTimeout(r, 300));
+        // 電腦發牌
+        showSingleCard(maryHand[i], "computer-hand", i, true);
+        await new Promise(r => setTimeout(r, 300));
+    }
+    
+    document.getElementById("revealBtn").disabled = false;
 }
 
 document.getElementById("betBtn").addEventListener("click",()=>{
@@ -194,14 +203,22 @@ document.getElementById("betBtn").addEventListener("click",()=>{
     document.getElementById("revealBtn").disabled=true;
 });
 
-document.getElementById("newGameBtn").addEventListener("click",()=>{
-    initGame();
-    document.getElementById("newGameBtn").disabled=true;
-    document.getElementById("revealBtn").disabled=false;
+document.getElementById("newGameBtn").addEventListener("click", async () => {
+    document.getElementById("newGameBtn").disabled = true;
+    await dealCardsAnimation();
 });
 
 document.getElementById("revealBtn").addEventListener("click",()=>{
-    showHand(maryHand,"computer-hand",false);
+    const computerCards = document.querySelectorAll("#computer-hand .card");
+    for (let i = 0; i < 5; i++) {
+        computerCards[i].textContent = maryHand[i].value + maryHand[i].suit;
+        computerCards[i].classList.remove("back"); // 移除灰色
+        if (maryHand[i].suit === "♥" || maryHand[i].suit === "♦") 
+            computerCards[i].classList.add("red");
+        else
+            computerCards[i].classList.remove("red");
+    }
+
     let res=compareHands(playerHand,maryHand);
     let txt=res.result===1?"你贏了":res.result===-1?"你輸了":"平手";
     txt+=` （你的牌: ${res.hand1Name}, Mary 的牌: ${res.hand2Name}）`;
