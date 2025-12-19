@@ -53,8 +53,8 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 
 <div id="top-right">
   <button onclick="history.back()">返回上一頁</button>
-  <div id="version">版本: V0.01</div>
-  <div id="visitorCount" style="position:fixed; top:60px; right:10px; font-size:12px; color:#fffff;">訪客人數: <span id="count">0</span></div>
+  <div id="version">版本: V0.02</div>
+  
 </div>
 
 <div id="container">
@@ -104,14 +104,7 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 </div>
 
 <script>
-// 訪客計數器
-let totalCount = parseInt(localStorage.getItem('visitorCount') || '0');
-if (!sessionStorage.getItem('visited')) {
-    totalCount++;
-    localStorage.setItem('visitorCount', totalCount);
-    sessionStorage.setItem('visited', 'true');
-}
-document.getElementById('count').textContent = totalCount.toString().padStart(5, '0');
+
 
 // 音效設定 (優化版本)
 const audioContext = new (window.AudioContext||window.webkitAudioContext)();
