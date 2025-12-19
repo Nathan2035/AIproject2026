@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>德州撲克對戰</title>
+<style>
+body { font-family: Arial; text-align: center; margin-top: 50px; background: transparent; color: white;}
+h1 { margin-bottom: 20px; color: #333333; }
+
+.card { 
+    width: 70px; height: 100px; border-radius: 8px; border: 1px solid #333;
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+    background-color: white; color: black; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    position: absolute;
+    z-index: 10; /* 疊在桌面上 */
+}
+.back { background-color: gray; color: gray; }
+.red { color: red; }
+
+#table-container {
+    position: relative;
+    margin: 20px auto;
+    width: 750px;
+    height: 400px;
+}
+#table {
+    width: 100%;
+    height: 100%;
+    background: #228B22;
+    border: 20px solid #8B4513;
+    box-sizing: border-box;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    border-radius: 200px / 50%;
+}
+
+#message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 30px;
+    color: yellow;
+    font-weight: bold;
+    text-shadow: 2px 2px 5px black;
+    z-index: 11;
+}
+
+button { padding: 10px 20px; font-size: 18px; margin: 10px; border-radius: 5px; cursor: pointer;}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+select { font-size: 16px; padding: 5px; margin-right: 5px; }
+
+#betContainer {
+    position: relative;
+    z-index: 12; 
+    margin: 20px auto;
+    color: #333333; 
+}
+
+#backBtn{position:fixed;top:10px;right:10px;padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;z-index:9999;box-shadow:2px 2px 5px rgba(0,0,0,0.3);}
+</style>
+</head>
+<body>
+
+<button id="backBtn">回到上一頁</button>
+<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.01</div>
+
+<h1>德州撲克對戰</h1>
+
+<div id="table-container">
+    <div id="table"></div>
+    <div id="computer-hand"></div>
+    <div id="message"></div>
+    <div id="player-hand"></div>
+</div>
+
+<div id="betContainer">
+    籌碼: <span id="chips">100</span>
+    下注金額:
+    <select id="betAmount">
+        <option value="10">10</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="500">500</option>
+        <option value="1000">1000</option>
+    </select>
+    <button id="betBtn">下注</button>
+    <button id="newGameBtn" disabled>發牌</button>
+    <button id="revealBtn" disabled>攤牌</button>
+</div>
+
+<script>
+const suits = ["♠", "♥", "♦", "♣"];
+const values = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+
+function createDeck(){let deck=[];for(let s of suits){for(let v of values){deck.push({value:v,suit:s});}}return deck;}
+function drawCards(deck,count){let hand=[];for(let i=0;i<count;i++){let idx=Math.floor(Math.random()*deck.length);hand.push(deck.splice(idx,1)[0]);}return hand;}
+function cardValue(card){if(card.value==="J")return 11;if(card.value==="Q")return 12;if(card.value==="K")return 13;if(card.value==="A")return 14;return parseInt(card.value);}
+function valueToFace(val){if(val===14)return "A";if(val===13)return "K";if(val===12)return "Q";if(val===11)return "J";return val.toString();}
+function evaluateHand(hand){
+    let vals=hand.map(c=>cardValue(c)).sort((a,b)=>a-b);
+    let suitsArr=hand.map(c=>c.suit);
+    let counts={}; vals.forEach(v=>counts[v]=(counts[v]||0)+1);
+    let isFlush = suitsArr.every(s=>s===suitsArr[0]);
+    let isStraight = vals[4]-vals[0]===4 && new Set(vals).size===5;
+    let score=0, tiebreaker=[], handName="";
+    let countVals=Object.entries(counts).sort((a,b)=>{if(b[1]===a[1])return b[0]-a[0];return b[1]-a[1];}).map(x=>parseInt(x[0]));
+    if(isFlush && isStraight && vals[4]===14){score=10;handName="皇家同花順";}
+    else if(isFlush && isStraight){score=9;handName="同花順";}
+    else if(Object.values(counts).includes(4)){score=8;handName="四條";}
+    else if(Object.values(counts).includes(3) && Object.values(counts).includes(2)){score=7;handName="葫蘆";}
+    else if(isFlush){score=6;handName="同花";}
+    else if(isStraight){score=5;handName="順子";}
+    else if(Object.values(counts).includes(3)){score=4;handName="三條";}
+    else if(Object.values(counts).filter(x=>x===2).length===2){score=3;handName="兩對";}
+    else if(Object.values(counts).includes(2)){score=2;let pairVal=Object.entries(counts).find(([k,v])=>v===2)[0];handName="一對 "+valueToFace(parseInt(pairVal));}
+    else{score=1;let maxVal=Math.max(...vals);let maxCard=hand.find(c=>cardValue(c)===maxVal);handName="最大 "+valueToFace(maxVal)+maxCard.suit;}
+    tiebreaker=countVals.slice();
+    return {score,tiebreaker,handName};
+}
+function compareHands(hand1,hand2){
+    let h1=evaluateHand(hand1);
+    let h2=evaluateHand(hand2);
+    if(h1.score>h2.score) return {result:1,hand1Name:h1.handName,hand2Name:h2.handName};
+    if(h1.score<h2.score) return {result:-1,hand1Name:h1.handName,hand2Name:h2.handName};
+    for(let i=0;i<h1.tiebreaker.length;i++){
+        if(h1.tiebreaker[i]>h2.tiebreaker[i]) return {result:1,hand1Name:h1.handName,hand2Name:h2.handName};
+        if(h1.tiebreaker[i]<h2.tiebreaker[i]) return {result:-1,hand1Name:h1.handName,hand2Name:h2.handName};
+    }
+    return {result:0,hand1Name:h1.handName,hand2Name:h2.handName};
+}
+
+const playerPositions = [
+  {top: "260px", left: "170px"},
+  {top: "260px", left: "250px"},
+  {top: "260px", left: "330px"},
+  {top: "260px", left: "410px"},
+  {top: "260px", left: "490px"}
+];
+
+const computerPositions = [
+  {top: "40px", left: "170px"},
+  {top: "40px", left: "250px"},
+  {top: "40px", left: "330px"},
+  {top: "40px", left: "410px"},
+  {top: "40px", left: "490px"}
+];
+
+function showHand(hand, elementId, hide=false){
+    const container = document.getElementById(elementId);
+    container.innerHTML = "";
+    const positions = elementId === "player-hand" ? playerPositions : computerPositions;
+
+    for(let i=0; i<hand.length; i++){
+        let c = hand[i];
+        let div = document.createElement("div");
+        div.className = "card" + (hide ? " back" : "");
+        div.textContent = hide ? "" : c.value + c.suit;
+        if(!hide && (c.suit==="♥"||c.suit==="♦")) div.classList.add("red");
+
+        div.style.top = positions[i].top;
+        div.style.left = positions[i].left;
+
+        container.appendChild(div);
+    }
+}
+
+let playerHand=[], maryHand=[], deck=[];
+let chips=100;
+let currentBet=0;
+
+function initGame(){
+    deck=createDeck();
+    playerHand=drawCards(deck,5);
+    maryHand=drawCards(deck,5);
+    showHand(playerHand,"player-hand");
+    showHand(maryHand,"computer-hand",true);
+    document.getElementById("message").textContent="";
+}
+
+document.getElementById("betBtn").addEventListener("click",()=>{
+    let bet=parseInt(document.getElementById("betAmount").value);
+    if(bet>chips) return;
+    chips-=bet;
+    currentBet=bet;
+    document.getElementById("chips").textContent=chips;
+    document.getElementById("player-hand").innerHTML = "";
+    document.getElementById("computer-hand").innerHTML = "";
+    document.getElementById("message").textContent = "";
+    document.getElementById("betBtn").disabled=true;
+    document.getElementById("newGameBtn").disabled=false;
+    document.getElementById("revealBtn").disabled=true;
+});
+
+document.getElementById("newGameBtn").addEventListener("click",()=>{
+    initGame();
+    document.getElementById("newGameBtn").disabled=true;
+    document.getElementById("revealBtn").disabled=false;
+});
+
+document.getElementById("revealBtn").addEventListener("click",()=>{
+    showHand(maryHand,"computer-hand",false);
+    let res=compareHands(playerHand,maryHand);
+    let txt=res.result===1?"你贏了":res.result===-1?"你輸了":"平手";
+    txt+=` （你的牌: ${res.hand1Name}, Mary 的牌: ${res.hand2Name}）`;
+    document.getElementById("message").textContent=txt;
+    if(res.result===1){chips+=currentBet*2;document.getElementById("chips").textContent=chips;}
+    currentBet=0;
+    document.getElementById("betBtn").disabled=false;
+    document.getElementById("revealBtn").disabled=true;
+});
+</script>
+</body>
+</html>
