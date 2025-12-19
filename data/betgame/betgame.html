@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>小瑪莉跑燈機台</title>
 <style>
-/* CSS 與之前完全相同 */
 body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:column;align-items:center;position:relative;}
 #container{border:4px solid black;padding:5px 10px 0px 10px;display:flex;flex-direction:column;align-items:center;margin-top:6px;}
 #top{width:358px;display:flex;justify-content:space-between;margin:5px 0px 5px 0px;}
@@ -25,11 +24,10 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
   font-size:18px;
   font-weight:bold;
   pointer-events:none;
-  width: 250px;       /* 訊息框固定寬度 */
-  text-align: center; /* 文字置中 */
-  white-space: nowrap; /* 避免自動換行 */
+  width: 250px;
+  text-align: center;
+  white-space: nowrap;
 }
-
 #bets{margin:10px 0;display:flex;width:356px;justify-content:space-between;gap:4px;}
 .bet{display:flex;flex-direction:column;align-items:center;width:45px;border:2px solid #000;padding:2px;box-sizing:border-box;}
 .fixed-number{width:100%;height:18px;background:#ccc;border:1px solid #555;font-size:14px;font-weight:bold;display:flex;justify-content:center;align-items:center;margin-bottom:2px;font-family:'Courier New',monospace;}
@@ -54,7 +52,6 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 <div id="top-right">
   <button onclick="history.back()">返回上一頁</button>
   <div id="version">版本: V0.02</div>
-  
 </div>
 
 <div id="container">
@@ -104,9 +101,7 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 </div>
 
 <script>
-
-
-// 音效設定 (優化版本)
+// 音效設定
 const audioContext = new (window.AudioContext||window.webkitAudioContext)();
 let coinBuffer = null;
 fetch('coin07.mp3')
@@ -124,7 +119,6 @@ function playCoin(){
   source.start(0);
 }
 
-// 遊戲邏輯
 const grid=document.getElementById('grid'); 
 const msg=document.getElementById('msg');
 let credit=0, win=0;
@@ -139,6 +133,10 @@ function updateDigits(id,val){
   for(let i=0;i<4;i++) d[i].textContent=s[i];
 }
 
+function clearMsg() {
+  msg.textContent = '';
+}
+
 // 建立格子
 const letters=Array(7).fill(0).map(()=>Array(7).fill(''));
 letters[0][0]='🍊';letters[6][6]='🍊'; letters[0][1]='🛎️'; letters[6][5]='🛎️';
@@ -146,7 +144,7 @@ letters[0][2]='🍒'; letters[0][5]='🍒'; letters[2][6]='🍒'; letters[5][6]=
 letters[6][4]='🍒';letters[6][1]='🍒'; letters[4][0]='🍒'; letters[1][0]='🍒';
 letters[0][3]='🀄'; letters[0][4]='🍎'; letters[2][0]='🍎'; letters[4][6]='🍎';
 letters[6][2]='🍎'; letters[0][6]='🥭'; letters[6][0]='🥭'; letters[1][6]='🍉';
-letters[6][3]='7️⃣'; letters[5][0]='⭐';
+letters[6][3]='7️⃣'; letters[5][0]='⭐';letters[3][0]='ONCE MORE';letters[3][6]='ONCE MORE';
 
 let cells=[]; 
 for(let r=0;r<7;r++){
@@ -155,17 +153,12 @@ for(let r=0;r<7;r++){
     d.className='cell'; 
     d.dataset.letter=letters[r][c]; 
     d.textContent=letters[r][c];
-    // emoji，放大
-    if(letters[r][c]==='🍊') d.style.fontSize='32px';
-    if(letters[r][c]==='🛎️') d.style.fontSize='32px';
-    if(letters[r][c]==='🍒') d.style.fontSize='32px';
-    if(letters[r][c]==='🍎') d.style.fontSize='32px';
-    if(letters[r][c]==='🥭') d.style.fontSize='32px';
-    if(letters[r][c]==='🍉') d.style.fontSize='32px';
+    if(['🍊','🛎️','🍒','🍎','🥭','🍉','⭐','🀄'].includes(letters[r][c])) d.style.fontSize='32px';
     if(letters[r][c]==='7️⃣') d.style.fontSize='30px';
-    if(letters[r][c]==='⭐') d.style.fontSize='32px';
-    if(letters[r][c]==='🀄') d.style.fontSize='32px';
-    
+    if(letters[r][c]==='ONCE MORE') { 
+      d.style.fontSize='12px'; 
+      d.style.paddingLeft='2px'; 
+    }
     const l=document.createElement('div'); 
     l.className='light';
     if(r>=1 && r<=5 && c>=1 && c<=5){
@@ -191,9 +184,10 @@ buttonConfig.forEach(cfg=>{
   const btn=document.createElement('button'); btn.textContent=cfg.ch;
   const count=document.createElement('div'); count.className='count'; count.textContent='0';
   btn.onclick=()=>{ 
+    clearMsg();
     if(spinning) return;
     if(betCounts[cfg.ch]>=9) return; 
-    if(credit <= 0){ msg.style.color = '#f00'; msg.textContent = '請投幣'; setTimeout(()=>{ msg.textContent = ''; },3000); return; }
+    if(credit <= 0){ msg.style.color = '#f00'; msg.textContent = '請投幣'; return; }
     betCounts[cfg.ch]++; bets[cfg.ch]++; credit--; count.textContent=betCounts[cfg.ch]; updateDigits('credit-digits', credit);
     playCoin();
     win += centerWin; updateDigits('win-digits', win);
@@ -203,10 +197,9 @@ buttonConfig.forEach(cfg=>{
   wrap.append(fixed,btn,count); betBox.appendChild(wrap);
 });
 
-document.getElementById('func1').onclick = () => { credit += 10; updateDigits('credit-digits', credit); playCoin(); };
-document.getElementById('func2').onclick = () => { credit += win; win=0; updateDigits('credit-digits', credit); updateDigits('win-digits', win); };
+document.getElementById('func1').onclick = () => { clearMsg(); credit += 10; updateDigits('credit-digits', credit); playCoin(); };
+document.getElementById('func2').onclick = () => { clearMsg(); credit += win; win=0; updateDigits('credit-digits', credit); updateDigits('win-digits', win); };
 
-// spin 與 start 按鈕
 function spin(){
   if(spinning) return;
   spinning=true;
@@ -227,12 +220,22 @@ function spin(){
     if(step>=totalSteps){
       const stop = order[pos];
       const letter = stop.el.dataset.letter;
+
+      // 如果是ONCE MORE，重新跑一次
+     if(letter === 'ONCE MORE'){
+  spinning = false;
+  setTimeout(() => {
+    spin();
+  }, 1500);   // 停 1.5 秒再跑
+  return;
+   }
+
       const cfg = buttonConfig.find(b=>b.ch===letter);
       const gain = cfg?bets[letter]*cfg.mult:0;
 
       if(gain>0){
         centerWin = gain; updateDigits('center-win-digits', centerWin);
-        msg.style.color='#f00'; msg.textContent=`押中${letter} 獎金${gain}元,可選左右邊`; setTimeout(()=>{ msg.textContent=''; }, 3000);
+        msg.style.color='#f00'; msg.textContent=`押中${letter} 獎金${gain}元,可選左右邊`;
 
         const leftLight = document.getElementById('center-left-light');
         const rightLight = document.getElementById('center-right-light');
@@ -244,7 +247,7 @@ function spin(){
           onLeft = !onLeft;
         }, 300);
 
-      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent='沒押中'; setTimeout(()=>{ msg.textContent=''; },3000); }
+      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent='沒押中'; }
 
       document.querySelectorAll('.count').forEach(c=>c.textContent='0'); 
       for(let k in bets){bets[k]=0; betCounts[k]=0;} 
@@ -265,9 +268,12 @@ function spin(){
   nextStep();
 }
 
-document.getElementById('start').onclick=()=>{ if(spinning||Object.values(bets).every(v=>v===0)) return; spin(); };
+document.getElementById('start').onclick=()=>{ 
+  clearMsg();
+  if(spinning||Object.values(bets).every(v=>v===0)) return; 
+  spin(); 
+};
 
-// 選左/右按鈕
 function stopFlashing(selected){
   if(!flashingInterval) return;
   clearInterval(flashingInterval);
@@ -290,7 +296,6 @@ function stopFlashing(selected){
         updateDigits('center-win-digits', centerWin);
         msg.style.color='#f00';
         msg.textContent=`恭喜你! 獎金 x2`;
-        setTimeout(()=>{ msg.textContent=''; },3000);
 
         let onLeft = true;
         flashingInterval = setInterval(()=>{
@@ -300,7 +305,7 @@ function stopFlashing(selected){
           onLeft = !onLeft;
         }, 300);
 
-      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent=`選錯邊了, 獎金歸零`; setTimeout(()=>{ msg.textContent=''; },3000); }
+      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent=`選錯邊了, 獎金歸零`; }
       return;
     }
     if(count%2===0){ leftLight.style.background='#f00'; rightLight.style.background='#bbb'; }
@@ -312,8 +317,8 @@ function stopFlashing(selected){
   slowStep();
 }
 
-document.getElementById('func3').onclick=()=>{ stopFlashing('left'); }
-document.getElementById('func4').onclick=()=>{ stopFlashing('right'); }
+document.getElementById('func3').onclick=()=>{ clearMsg(); stopFlashing('left'); }
+document.getElementById('func4').onclick=()=>{ clearMsg(); stopFlashing('right'); }
 
 </script>
 </body>
