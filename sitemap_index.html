@@ -2,47 +2,100 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>Sitemap</title>
+<title>網站導覽</title>
 <style>
-body{
-    font-family: Arial, "Microsoft JhengHei", sans-serif;
-    background:#ffffff;
-    color:#333;
-    margin:40px;
+body {
+    font-family: 'Helvetica Neue', 'Arial', 'Microsoft JhengHei', sans-serif;
+    background: #f7f5f2;
+    color: #444;
+    margin: 0;
+    padding: 60px 20px;
+    line-height: 1.9;
+    overflow-x: hidden;
 }
-h1{
-    font-size:28px;
+
+/* 將內容統一容器對齊 */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
 }
-p{
-    margin:10px 0 20px 0;
+
+/* 標題對齊容器左側 */
+h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #3b3b3b;
+    margin-bottom: 40px;
+    text-align: left;
 }
-ul{
-    list-style:none;
-    padding:0;
+
+/* 文字段落 */
+p {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 30px;
+    text-align: justify;
 }
-li{
-    margin:8px 0;
+
+/* 導覽樹狀結構 */
+.nav-tree {
+    margin-top: 20px;
 }
-a{
-    color:#0066cc;
-    text-decoration:none;
+
+.nav-tree ul {
+    list-style: none; /* 去掉圓點 */
+    padding-left: 0;
 }
-a:hover{
-    text-decoration:underline;
+
+.nav-tree li {
+    margin: 8px 0;
+}
+
+.nav-tree li a {
+    text-decoration: none; /* 去掉底線 */
+    color: #a67c52;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-tree li a:hover {
+    color: #c08f64;
+}
+
+/* 子項縮排 */
+.nav-tree li ul {
+    padding-left: 20px;
+}
+
+section {
+    margin-bottom: 60px;
 }
 </style>
 </head>
 <body>
 
-<h1>Sitemap</h1>
+<div class="container">
+    <h1>網站導覽</h1>
 
-<p>這是一個 AI 生成網站。</p>
+    <section>
+        <p>這是一個AI生成的網站，所有程式碼都由免費版的ChatGPT生成，再手動轉成HTML檔，目的是測試免費生成式AI的能力與限制。網站使用了OpenAI的ChatGPT，你也可以依需求使用Google Gemini、Meta LLaMA等系列，或者各種圖像、影片、音訊生成AI，這些工具能快速幫助你實現創作靈感。</p>
 
-<ul>
-    <li><a href="index.html">首頁</a></li>
-    <li><a href="data/horseracing/horseracing.html">賽豬遊戲</a></li>
-    <li><a href="data/betgame/betgame.html">小瑪莉機台</a></li>
-</ul>
+        <div class="nav-tree">
+            <ul>
+                <li><a href="index.html">首頁</a>
+                    <ul>
+                        <li><a href="data/horseracing/horseracing.html">賽豬遊戲</a></li>
+                        <li><a href="data/betgame/betgame.html">小瑪莉機台</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <section>
+        <p>探索更多功能與內容，將會在網站的其他頁面持續更新與呈現。</p>
+    </section>
+</div>
 
 </body>
 </html>
