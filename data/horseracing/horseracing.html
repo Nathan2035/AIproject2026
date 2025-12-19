@@ -196,7 +196,7 @@ button:disabled{
 
 <button id="backBtn">回到上一頁</button>
 <div id="version" style="position:fixed; top:50px; right:10px; font-size:14px; color:#ffd700;">版本: V0.1</div>
-<div id="visitorCount" style="position:fixed; top:70px; right:10px; font-size:14px; color:#ffd700;">訪客人數: <span id="count">0</span></div>
+
 
 
 <div id="controls">
@@ -261,21 +261,7 @@ button:disabled{
 <audio id="winSound" src="coin07.mp3" preload="auto"></audio>
 
 <script>
-//訪客計數器
-// 總訪客數
-let totalCount = parseInt(localStorage.getItem('visitorCount') || '0');
 
-// 判斷 session 是否已經增加過
-if (!sessionStorage.getItem('visited')) {
-    totalCount++;
-    localStorage.setItem('visitorCount', totalCount);
-    sessionStorage.setItem('visited', 'true');
-}
-
-// 顯示固定5位數
-document.getElementById('count').textContent = totalCount.toString().padStart(5, '0');
-
-//
 
 const HORSE_COUNT = 8;
 let playerChips = 5000;
