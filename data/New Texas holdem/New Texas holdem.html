@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <title>德州撲克對戰</title>
 <style>
-body { font-family: Arial; text-align: center; margin-top: 50px; background: transparent; color: white;}
-h1 { margin-bottom: 20px; color: #333333; }
+body { font-family: Arial; text-align: center; margin-top: 10px; background: transparent; color: white;}
+h1 { margin-bottom: 10px; color: #333333; }
 
 .card { 
     width: 70px; height: 100px; border-radius: 8px; border: 1px solid #333;
@@ -48,8 +48,28 @@ h1 { margin-bottom: 20px; color: #333333; }
     z-index: 11;
 }
 
-button { padding: 10px 20px; font-size: 18px; margin: 10px; border-radius: 5px; cursor: pointer;}
-button:disabled { opacity: 0.5; cursor: not-allowed; }
+/* 立體按鈕樣式 */
+button { 
+    padding: 4px 16px; 
+    font-size: 14px; 
+    margin: 10px; 
+    border-radius: 5px; 
+    cursor: pointer;
+    background: linear-gradient(to bottom, #f0f0f0, #ccc);
+    border: 1px solid #888;
+    box-shadow: 2px 2px #dddddd;
+    transition: all 0.1s ease-in-out;
+}
+button:active {
+    box-shadow: 2px 2px #eeeeee;
+    transform: translateY(2px);
+}
+button:disabled { 
+    opacity: 0.5; 
+    cursor: not-allowed; 
+    box-shadow: none;
+}
+
 select { font-size: 16px; padding: 5px; margin-right: 5px; }
 
 #betContainer {
@@ -59,13 +79,55 @@ select { font-size: 16px; padding: 5px; margin-right: 5px; }
     color: #333333; 
 }
 
-#backBtn{position:fixed;top:10px;right:10px;padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;z-index:9999;box-shadow:2px 2px 5px rgba(0,0,0,0.3);}
+#backBtn{
+    position:fixed;
+    top:10px;
+    right:10px;
+    padding:6px 12px;
+    font-size:14px;
+    background:#fff;
+    border:2px solid #ccc;
+    border-radius:6px;
+    cursor:pointer;
+    color:#333;
+    z-index:9999;
+    box-shadow: 2px 2px #dddddd;
+}
+#backBtn:active { box-shadow: 2px 2px #eeeeee; transform: translateY(2px); }
+
+#chipBox {
+    display: inline-block;
+    padding: 3px 3px;
+    min-width: 30px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    font-weight: bold;
+    font-size:20px;
+    color: #333;
+    background-color: rgba(255,255,255,0.1);
+    position: relative;
+    text-align: center;
+}
+
+#warningMessage {
+    font-size: 18px;
+    color: red;
+    font-weight: bold;
+    position: absolute;
+    left: 38%;
+    transform: translateX(-50%);
+    bottom: 84%;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    display: none;
+}
 </style>
 </head>
 <body>
 
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.02</div>
+<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.10</div>
 
 <h1>德州撲克對戰</h1>
 
@@ -77,7 +139,9 @@ select { font-size: 16px; padding: 5px; margin-right: 5px; }
 </div>
 
 <div id="betContainer">
-    籌碼: <span id="chips">100</span>
+    <button id="addCoinBtn">投幣10元</button>
+    籌碼: <div id="chipBox">00090</div>
+    <div id="warningMessage">錢不夠了</div>
     下注金額:
     <select id="betAmount">
         <option value="10">10</option>
@@ -88,12 +152,38 @@ select { font-size: 16px; padding: 5px; margin-right: 5px; }
     </select>
     <button id="betBtn">下注</button>
     <button id="newGameBtn" disabled>發牌</button>
+    <button id="swapBtn" disabled>換牌</button>
     <button id="revealBtn" disabled>攤牌</button>
 </div>
 
 <script>
 backBtn.onclick=()=>{window.history.back();};
 
+// 初始籌碼
+let chips = 90;
+let currentBet = 0;
+function updateChipsDisplay(){
+    document.getElementById("chipBox").textContent = String(chips).padStart(5,'0');
+}
+
+// 顯示警告訊息
+function showWarningMessage(msg){
+    const w = document.getElementById("warningMessage");
+    w.textContent = msg;
+    w.style.display = "block";
+    setTimeout(()=>{ w.style.display="none"; }, 3000);
+}
+
+// 投幣增加籌碼
+document.getElementById("addCoinBtn").addEventListener("click", () => {
+    chips += 10;
+    updateChipsDisplay();
+});
+
+// 初始化畫面
+updateChipsDisplay();
+
+// 牌組及遊戲邏輯
 const suits = ["♠", "♥", "♦", "♣"];
 const values = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
 
@@ -134,6 +224,7 @@ function compareHands(hand1,hand2){
     return {result:0,hand1Name:h1.handName,hand2Name:h2.handName};
 }
 
+// 牌位置
 const playerPositions = [
   {top: "260px", left: "170px"},
   {top: "260px", left: "250px"},
@@ -141,7 +232,6 @@ const playerPositions = [
   {top: "260px", left: "410px"},
   {top: "260px", left: "490px"}
 ];
-
 const computerPositions = [
   {top: "40px", left: "170px"},
   {top: "40px", left: "250px"},
@@ -166,8 +256,8 @@ function showSingleCard(card, elementId, index, hide) {
 }
 
 let playerHand=[], maryHand=[], deck=[];
-let chips=100;
-let currentBet=0;
+let swapUsed = false;
+let selectedCards = [];
 
 async function dealCardsAnimation() {
     deck = createDeck();
@@ -180,23 +270,67 @@ async function dealCardsAnimation() {
     
     const maxCards = 5;
     for (let i = 0; i < maxCards; i++) {
-        // 玩家發牌
         showSingleCard(playerHand[i], "player-hand", i, false);
         await new Promise(r => setTimeout(r, 300));
-        // 電腦發牌
         showSingleCard(maryHand[i], "computer-hand", i, true);
         await new Promise(r => setTimeout(r, 300));
     }
     
-    document.getElementById("revealBtn").disabled = false;
+    setTimeout(()=>{
+        const sortOrder = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+        const suitOrder = ["♠","♥","♦","♣"];
+        
+        playerHand.sort((a,b)=>{
+            if(a.value===b.value) return suitOrder.indexOf(a.suit)-suitOrder.indexOf(b.suit);
+            return sortOrder.indexOf(a.value)-sortOrder.indexOf(b.value);
+        });
+        maryHand.sort((a,b)=>{
+            if(a.value===b.value) return suitOrder.indexOf(a.suit)-suitOrder.indexOf(b.suit);
+            return sortOrder.indexOf(a.value)-sortOrder.indexOf(b.value);
+        });
+        
+        document.getElementById("player-hand").innerHTML = "";
+        document.getElementById("computer-hand").innerHTML = "";
+        for (let i=0;i<5;i++){
+            showSingleCard(playerHand[i],"player-hand",i,false);
+            showSingleCard(maryHand[i],"computer-hand",i,true);
+        }
+
+        // 啟用換牌按鈕
+        document.getElementById("swapBtn").disabled = false;
+        selectedCards = [];
+        swapUsed = false;
+
+        // 讓玩家點選牌
+        const playerCards = document.querySelectorAll("#player-hand .card");
+        playerCards.forEach((card, idx) => {
+            card.style.cursor = "pointer";
+            card.onclick = () => {
+                if (swapUsed) return;
+                if (selectedCards.includes(idx)) {
+                    selectedCards = selectedCards.filter(i => i !== idx);
+                    card.style.border = "1px solid #333";
+                } else if (selectedCards.length < 2) {
+                    selectedCards.push(idx);
+                    card.style.border = "2px solid yellow";
+                }
+            };
+        });
+    },1000);
+
+    document.getElementById("revealBtn").disabled=false;
 }
 
+// 下注
 document.getElementById("betBtn").addEventListener("click",()=>{
     let bet=parseInt(document.getElementById("betAmount").value);
-    if(bet>chips) return;
+    if(bet>chips){
+        showWarningMessage("錢不夠了");
+        return;
+    }
     chips-=bet;
     currentBet=bet;
-    document.getElementById("chips").textContent=chips;
+    updateChipsDisplay();
     document.getElementById("player-hand").innerHTML = "";
     document.getElementById("computer-hand").innerHTML = "";
     document.getElementById("message").textContent = "";
@@ -205,16 +339,54 @@ document.getElementById("betBtn").addEventListener("click",()=>{
     document.getElementById("revealBtn").disabled=true;
 });
 
+// 發牌
 document.getElementById("newGameBtn").addEventListener("click", async () => {
     document.getElementById("newGameBtn").disabled = true;
     await dealCardsAnimation();
 });
 
+// 換牌
+document.getElementById("swapBtn").addEventListener("click", async () => {
+    if (swapUsed) return;
+    if (selectedCards.length === 0) {
+        showWarningMessage("請先點選最多2張撲克牌");
+        return;
+    }
+
+    swapUsed = true;
+    document.getElementById("swapBtn").disabled = true;
+
+    // 蓋牌動畫
+    for (let idx of selectedCards) {
+        const cardDiv = document.querySelectorAll("#player-hand .card")[idx];
+        cardDiv.classList.add("back");
+        cardDiv.textContent = "";
+        cardDiv.classList.remove("red");
+    }
+
+    await new Promise(r => setTimeout(r, 2000));
+
+    // 換成新牌
+    for (let idx of selectedCards) {
+        const newCard = drawCards(deck, 1)[0];
+        playerHand[idx] = newCard;
+        const cardDiv = document.querySelectorAll("#player-hand .card")[idx];
+        cardDiv.classList.remove("back");
+        cardDiv.textContent = newCard.value + newCard.suit;
+        if (newCard.suit === "♥" || newCard.suit === "♦") cardDiv.classList.add("red");
+        else cardDiv.classList.remove("red");
+        cardDiv.style.border = "1px solid #333";
+    }
+
+    document.getElementById("revealBtn").disabled = false;
+});
+
+// 攤牌
 document.getElementById("revealBtn").addEventListener("click",()=>{
     const computerCards = document.querySelectorAll("#computer-hand .card");
     for (let i = 0; i < 5; i++) {
         computerCards[i].textContent = maryHand[i].value + maryHand[i].suit;
-        computerCards[i].classList.remove("back"); // 移除灰色
+        computerCards[i].classList.remove("back");
         if (maryHand[i].suit === "♥" || maryHand[i].suit === "♦") 
             computerCards[i].classList.add("red");
         else
@@ -225,7 +397,7 @@ document.getElementById("revealBtn").addEventListener("click",()=>{
     let txt=res.result===1?"你贏了":res.result===-1?"你輸了":"平手";
     txt+=` （你的牌: ${res.hand1Name}, Mary 的牌: ${res.hand2Name}）`;
     document.getElementById("message").textContent=txt;
-    if(res.result===1){chips+=currentBet*2;document.getElementById("chips").textContent=chips;}
+    if(res.result===1){chips+=currentBet*2;updateChipsDisplay();}
     currentBet=0;
     document.getElementById("betBtn").disabled=false;
     document.getElementById("revealBtn").disabled=true;
