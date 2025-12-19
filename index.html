@@ -8,7 +8,7 @@ body {
     margin: 0;
     background: linear-gradient(135deg, #a0e0e0, #0abab5);
     font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    color: #222;
+    color: #333333; /* 全部文字深灰 */
     overflow-x: hidden;
     text-align: center;
 }
@@ -35,6 +35,7 @@ header h1 {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: #333333;
 }
 
 header nav {
@@ -48,7 +49,7 @@ header nav {
 
 header nav a {
     text-decoration: none;
-    color: #333;
+    color: #333333;
     font-weight: 500;
     cursor: pointer;
     transition: color 0.3s;
@@ -93,7 +94,7 @@ header nav a:hover {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: rgba(0,0,0,0.7);
+    color: #333333; /* 深灰 */
     font-weight: bold;
     text-decoration: none;
     opacity: 0.9;
@@ -137,22 +138,34 @@ header nav a:hover {
     font-weight: 300;
     opacity: 0.7;
     margin-top: 2px;
+    color: #333333;
 }
 
 footer {
     position: absolute;
     bottom: 0;
     width: 100%;
-    padding: 14px;
+    padding: 14px 20px;
     background: rgba(255,255,255,0.85);
     font-size: 14px;
     box-shadow: 0 -2px 6px rgba(0,0,0,0.05);
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    color: #333333;
 }
 
 footer a {
-    color: #000;
+    color: #333333;
     text-decoration: none;
     font-weight: normal;
+}
+
+footer #todayDate {
+    font-size: 13px;
+    color: #333333;
 }
 
 .aboutOverlay {
@@ -165,7 +178,7 @@ footer a {
     padding: 0;
     font-size: 16px;
     line-height: 1.5;
-    color: #222;
+    color: #333333;
     display: none;
     z-index: 30;
     pointer-events: none;
@@ -196,6 +209,7 @@ This is an AI-generated website. All code was created using the free version of 
 </div>
 
 <footer>
+    <div id="todayDate"></div>
     <a href="mailto:poootoooc@gmail.com">🖂 Nathan</a>
 </footer>
 
@@ -212,23 +226,21 @@ const bubbleData = [
 
 const BASE_SIZE = 110;
 const HOVER_SCALE = 1.9;
-const PADDING = 10; // 增加間距
+const PADDING = 10;
 const container = document.getElementById("bubble-container");
 
 function getRandomPosition(placed) {
     const containerWidth = window.innerWidth;
     const containerHeight = window.innerHeight * 0.8;
-
-    const maxWidth = Math.min(containerWidth, 1000); // 最大寬度限制
+    const maxWidth = Math.min(containerWidth, 1000);
     const ratioX = 0.7;
     const ratioY = 0.7;
-
     const effectiveWidth = maxWidth * ratioX;
     const effectiveHeight = containerHeight * ratioY;
     const startX = (containerWidth - effectiveWidth) / 2;
     const startY = (containerHeight - effectiveHeight) / 2;
 
-    for (let i = 0; i < 3000; i++) { // 大幅增加迴圈
+    for (let i = 0; i < 3000; i++) {
         const x = startX + Math.random() * (effectiveWidth - BASE_SIZE);
         const y = startY + Math.random() * (effectiveHeight - BASE_SIZE);
 
@@ -283,6 +295,7 @@ function createBubbles() {
 createBubbles();
 window.addEventListener("resize", createBubbles);
 
+// About Us / 關於我們功能
 const aboutBtn = document.getElementById("aboutBtn");
 const aboutOverlay = document.getElementById("aboutOverlay");
 const aboutUsBtn = document.getElementById("aboutUsBtn");
@@ -300,6 +313,13 @@ if(isTouchDevice){
     aboutUsBtn.addEventListener("mouseenter", () => aboutUsOverlay.style.display="block");
     aboutUsBtn.addEventListener("mouseleave", () => aboutUsOverlay.style.display="none");
 }
+
+// 顯示今天日期
+const today = new Date();
+const yyyy = today.getFullYear();
+const mm = String(today.getMonth() + 1).padStart(2, '0');
+const dd = String(today.getDate()).padStart(2, '0');
+document.getElementById('todayDate').textContent = `${yyyy}/${mm}/${dd}`;
 </script>
 
 </body>
