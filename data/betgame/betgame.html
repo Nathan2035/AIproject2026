@@ -52,7 +52,7 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 
 <div id="top-right">
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:50px; right:20px; font-size:14px; color:#333333;">版本: V0.05</div>
+<div id="version" style="position:fixed; top:50px; right:20px; font-size:14px; color:#333333;">版本: V0.06</div>
 </div>
 
 <div id="container">
@@ -91,7 +91,7 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
   </div>
 
   <div id="button-area">
-    <button id="func1">投幣10元</button>
+    <button id="func1">投幣</button>
     <button id="func2">轉到錢包</button>
     <button id="func3">選左</button>
     <button id="func4">選右</button>
@@ -117,7 +117,7 @@ function playCoin(){
   const source = audioContext.createBufferSource();
   source.buffer = coinBuffer;
   const gainNode = audioContext.createGain();
-  gainNode.gain.value = 1;
+  gainNode.gain.value = 0.5;
   source.connect(gainNode).connect(audioContext.destination);
   source.start(0);
 }
@@ -190,7 +190,7 @@ buttonConfig.forEach(cfg=>{
     clearMsg();
     if(spinning) return;
     if(betCounts[cfg.ch]>=9) return; 
-    if(credit <= 0){ msg.style.color = '#f00'; msg.textContent = '請投幣'; return; }
+    if(credit <= 0){ msg.style.color = '#f00'; msg.textContent = '請先投幣或將獎金轉到錢包'; return; }
     betCounts[cfg.ch]++; bets[cfg.ch]++; credit--; count.textContent=betCounts[cfg.ch]; updateDigits('credit-digits', credit);
     playCoin();
     win += centerWin; updateDigits('win-digits', win);
@@ -250,7 +250,7 @@ function spin(){
           onLeft = !onLeft;
         }, 300);
 
-      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent='沒押中'; }
+      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent='沒有押中'; }
 
       document.querySelectorAll('.count').forEach(c=>c.textContent='0'); 
       for(let k in bets){bets[k]=0; betCounts[k]=0;} 
@@ -271,9 +271,14 @@ function spin(){
   nextStep();
 }
 
-document.getElementById('start').onclick=()=>{ 
+document.getElementById('start').onclick = () => { 
   clearMsg();
-  if(spinning||Object.values(bets).every(v=>v===0)) return; 
+  if(spinning) return; 
+  if(Object.values(bets).every(v => v === 0)){
+    msg.style.color = '#f00';
+    msg.textContent = '請先押注';
+    return;
+  }
   spin(); 
 };
 
