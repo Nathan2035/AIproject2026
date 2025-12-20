@@ -44,7 +44,7 @@ select { font-size: 16px; padding: 5px; margin-right: 5px; }
 <body>
 
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.05</div>
+<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.06</div>
 
 <h1>新德州撲克</h1>
 
@@ -261,7 +261,7 @@ document.getElementById("revealBtn").addEventListener("click",()=>{
     playerCards.forEach(c=>c.style.border="1px solid #333");
     document.getElementById("swapBtn").disabled=true;
     let res=compareHands(playerHand,maryHand);
-    let resultText=res.result===1?`你贏了 ${currentBet*2} 元`:(res.result===-1?`你輸了 ${currentBet} 元`:"平手");
+    let resultText=res.result===1?`你贏了 ${currentBet} 元`:(res.result===-1?`你輸了 ${currentBet} 元`:"平手");
     document.getElementById("messageResult").textContent=resultText;
     document.getElementById("messageMary").textContent=` ${res.hand2Name}`;
     document.getElementById("messagePlayer").textContent=` ${res.hand1Name}`;
