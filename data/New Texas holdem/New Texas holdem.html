@@ -44,7 +44,7 @@ select { font-size: 16px; padding: 5px; margin-right: 5px; }
 <body>
 
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.05</div>
+<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.17</div>
 
 <h1>新德州撲克</h1>
 
@@ -83,26 +83,30 @@ const maxCoinPress = 10;
 
 let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let coinBuffer = null;
+let dealingBuffer = null;
+let cheersBuffer = null;
 
 // 載入音效
-fetch('coin07.mp3')
-    .then(r => r.arrayBuffer())
-    .then(buf => audioContext.decodeAudioData(buf))
-    .then(decoded => { coinBuffer = decoded; })
-    .catch(err => console.error("音效載入失敗", err));
+fetch('coin07.mp3').then(r=>r.arrayBuffer()).then(buf=>audioContext.decodeAudioData(buf)).then(decoded=>{coinBuffer=decoded;});
+fetch('dealing_cards1.mp3').then(r=>r.arrayBuffer()).then(buf=>audioContext.decodeAudioData(buf)).then(decoded=>{dealingBuffer=decoded;});
+fetch('cheers2.mp3').then(r=>r.arrayBuffer()).then(buf=>audioContext.decodeAudioData(buf)).then(decoded=>{cheersBuffer=decoded;});
 
-function playCoinSound(){
-    if(audioContext.state === 'suspended') audioContext.resume();
-    if(coinBuffer){
+function playSound(buffer){
+    if(audioContext.state==='suspended') audioContext.resume();
+    if(buffer){
         let source = audioContext.createBufferSource();
-        source.buffer = coinBuffer;
+        source.buffer = buffer;
         source.connect(audioContext.destination);
         source.start(0);
     }
 }
 
+function playCoinSound(){ playSound(coinBuffer); }
+function playDealingSound(){ playSound(dealingBuffer); }
+function playCheersSound(){ playSound(cheersBuffer); }
+
 function updateChipsDisplay(){document.getElementById("chipBox").textContent = String(chips).padStart(5,'0');}
-function showWarningMessage(msg){const w = document.getElementById("warningMessage"); w.textContent = msg; w.style.display = "block"; setTimeout(()=>{ w.style.display="none"; },3000);}
+function showWarningMessage(msg){const w=document.getElementById("warningMessage"); w.textContent=msg; w.style.display="block"; setTimeout(()=>{ w.style.display="none"; },3000);}
 
 // 投幣10元
 document.getElementById("addCoinBtn").addEventListener("click", ()=>{
@@ -155,9 +159,11 @@ function showSingleCard(card,elementId,index,hide){
     div.style.left=positions[index].left;
     if(elementId==="player-hand"){div.addEventListener("click",()=>{if(swapUsed||document.getElementById("swapBtn").disabled)return;if(div.style.border==="3px solid red"){div.style.border="1px solid #333";selectedCards=selectedCards.filter(i=>i!==index);}else{if(selectedCards.length>=2){showWarningMessage("最多只能選2張牌");return;} div.style.border="3px solid red";selectedCards.push(index);}});}
     container.appendChild(div);
+    playDealingSound();
 }
 
 let playerHand=[],maryHand=[],deck=[];
+
 async function dealCardsAnimation(){
     deck=createDeck();playerHand=drawCards(deck,5);maryHand=drawCards(deck,5);
     document.getElementById("player-hand").innerHTML="";
@@ -165,7 +171,10 @@ async function dealCardsAnimation(){
     document.getElementById("messageResult").textContent="";
     document.getElementById("messageMary").textContent="";
     document.getElementById("messagePlayer").textContent="";
-    for(let i=0;i<5;i++){showSingleCard(playerHand[i],"player-hand",i,false); await new Promise(r=>setTimeout(r,300)); showSingleCard(maryHand[i],"computer-hand",i,true); await new Promise(r=>setTimeout(r,300));}
+    for(let i=0;i<5;i++){
+        showSingleCard(playerHand[i],"player-hand",i,false); await new Promise(r=>setTimeout(r,300));
+        showSingleCard(maryHand[i],"computer-hand",i,true); await new Promise(r=>setTimeout(r,300));
+    }
     setTimeout(()=>{
         const sortOrder=["A","2","3","4","5","6","7","8","9","10","J","Q","K"],suitOrder=["♠","♥","♦","♣"];
         playerHand.sort((a,b)=>a.value===b.value?suitOrder.indexOf(a.suit)-suitOrder.indexOf(b.suit):sortOrder.indexOf(a.value)-sortOrder.indexOf(b.value));
@@ -178,7 +187,6 @@ async function dealCardsAnimation(){
     },1000);
 }
 
-// 以下保持原本下注、換牌、攤牌邏輯不變，直接使用你提供的程式碼
 // 下注
 document.getElementById("betBtn").addEventListener("click",()=>{
     let bet=parseInt(document.getElementById("betAmount").value);
@@ -201,14 +209,18 @@ document.getElementById("betBtn").addEventListener("click",()=>{
 document.getElementById("swapBtn").addEventListener("click", async ()=>{
     if(swapUsed){showWarningMessage("換牌只能使用一次");return;}
     if(selectedCards.length===0){showWarningMessage("請先點選最多2張撲克牌");return;}
+
     swapUsed=true;
     document.getElementById("swapBtn").disabled=true;
     document.getElementById("revealBtn").disabled=true;
+
     for(let idx of selectedCards){
         const cardDiv=document.querySelectorAll("#player-hand .card")[idx];
         cardDiv.classList.add("back"); cardDiv.textContent="";
     }
+
     await new Promise(r=>setTimeout(r,1000));
+
     for(let idx of selectedCards){
         playerHand[idx]=drawCards(deck,1)[0];
         const cardDiv=document.querySelectorAll("#player-hand .card")[idx];
@@ -217,6 +229,7 @@ document.getElementById("swapBtn").addEventListener("click", async ()=>{
         if(playerHand[idx].suit==="♥"||playerHand[idx].suit==="♦") cardDiv.classList.add("red"); else cardDiv.classList.remove("red");
         cardDiv.style.border="1px solid #333";
     }
+
     selectedCards=[];
     setTimeout(()=>{
         const sortOrder=["A","2","3","4","5","6","7","8","9","10","J","Q","K"], suitOrder=["♠","♥","♦","♣"];
@@ -228,10 +241,13 @@ document.getElementById("swapBtn").addEventListener("click", async ()=>{
 });
 
 // 發牌
-document.getElementById("newGameBtn").addEventListener("click", async ()=>{document.getElementById("newGameBtn").disabled=true; document.getElementById("addCoinBtn").disabled=true; await dealCardsAnimation();});
+document.getElementById("newGameBtn").addEventListener("click", async ()=>{
+    document.getElementById("newGameBtn").disabled=true;
+    await dealCardsAnimation();
+});
 
 // 攤牌
-document.getElementById("revealBtn").addEventListener("click",()=>{
+document.getElementById("revealBtn").addEventListener("click", ()=>{
     const computerCards=document.querySelectorAll("#computer-hand .card");
     for(let i=0;i<5;i++){
         computerCards[i].textContent=maryHand[i].value+maryHand[i].suit;
@@ -241,17 +257,23 @@ document.getElementById("revealBtn").addEventListener("click",()=>{
     const playerCards=document.querySelectorAll("#player-hand .card");
     playerCards.forEach(c=>c.style.border="1px solid #333");
     document.getElementById("swapBtn").disabled=true;
+
     let res=compareHands(playerHand,maryHand);
     let resultText=res.result===1?`你贏了 ${currentBet*2} 元`:(res.result===-1?`你輸了 ${currentBet} 元`:"平手");
     document.getElementById("messageResult").textContent=resultText;
     document.getElementById("messageMary").textContent=` ${res.hand2Name}`;
     document.getElementById("messagePlayer").textContent=` ${res.hand1Name}`;
-    if(res.result===1){chips+=currentBet*2; updateChipsDisplay();}
+
+    if(res.result===1){
+        chips+=currentBet*2; 
+        updateChipsDisplay();
+        playCheersSound();
+    }
+
     currentBet=0;
     document.getElementById("betBtn").disabled=false;
     document.getElementById("revealBtn").disabled=true;
-    swapUsed=true;
-    selectedCards=[];
+
     if(chips===0){ coinPressCount=0; document.getElementById("addCoinBtn").disabled=false; }
 });
 
