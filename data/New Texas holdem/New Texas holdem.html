@@ -85,6 +85,7 @@ let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let coinBuffer = null;
 let dealingBuffer = null;
 let winBuffer = null;
+let loseBuffer = null;
 
 // 載入音效
 function loadAudio(url, callback) {
@@ -98,6 +99,7 @@ function loadAudio(url, callback) {
 loadAudio('coin07.mp3', buf => coinBuffer = buf);
 loadAudio('dealing_cards1.mp3', buf => dealingBuffer = buf);
 loadAudio('cheers2.mp3', buf => winBuffer = buf);
+loadAudio('you-lose1.mp3', buf => loseBuffer = buf);
 
 function playSound(buffer){
     if(!buffer) return;
@@ -267,6 +269,8 @@ document.getElementById("revealBtn").addEventListener("click",()=>{
         chips+=currentBet*2; 
         updateChipsDisplay();
         playSound(winBuffer);
+    } else if(res.result===-1){
+        playSound(loseBuffer);
     }
     currentBet=0;
     document.getElementById("betBtn").disabled=false;
