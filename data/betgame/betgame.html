@@ -117,7 +117,7 @@ function playCoin(){
   const source = audioContext.createBufferSource();
   source.buffer = coinBuffer;
   const gainNode = audioContext.createGain();
-  gainNode.gain.value = 0.2;
+  gainNode.gain.value = 1;
   source.connect(gainNode).connect(audioContext.destination);
   source.start(0);
 }
