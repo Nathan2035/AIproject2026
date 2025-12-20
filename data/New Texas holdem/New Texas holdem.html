@@ -102,7 +102,7 @@ function playSound(buffer){
 }
 
 function playCoinSound(){ playSound(coinBuffer); }
-function playDealingSound(){ playSound(dealingBuffer); }
+function playDealingSound(){ /* 取消發牌重新排列音效 */ }
 function playCheersSound(){ playSound(cheersBuffer); }
 
 function updateChipsDisplay(){document.getElementById("chipBox").textContent = String(chips).padStart(5,'0');}
@@ -184,6 +184,7 @@ async function dealCardsAnimation(){
         for(let i=0;i<5;i++){showSingleCard(playerHand[i],"player-hand",i,false); showSingleCard(maryHand[i],"computer-hand",i,true);}
         document.getElementById("swapBtn").disabled=false;
         document.getElementById("revealBtn").disabled=false;
+        // 取消這裡的音效播放
     },1000);
 }
 
