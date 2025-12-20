@@ -44,7 +44,7 @@ select { font-size: 16px; padding: 5px; margin-right: 5px; }
 <body>
 
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.13</div>
+<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.05</div>
 
 <h1>新德州撲克</h1>
 
@@ -81,16 +81,18 @@ backBtn.onclick=()=>{window.history.back();};
 let chips = 0, currentBet = 0, selectedCards = [], swapUsed = false, coinPressCount = 0;
 const maxCoinPress = 10;
 
-// 音效初始化
 let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let coinBuffer = null;
+
+// 載入音效
 fetch('coin07.mp3')
-    .then(response => response.arrayBuffer())
-    .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-    .then(buffer => { coinBuffer = buffer; })
+    .then(r => r.arrayBuffer())
+    .then(buf => audioContext.decodeAudioData(buf))
+    .then(decoded => { coinBuffer = decoded; })
     .catch(err => console.error("音效載入失敗", err));
 
 function playCoinSound(){
+    if(audioContext.state === 'suspended') audioContext.resume();
     if(coinBuffer){
         let source = audioContext.createBufferSource();
         source.buffer = coinBuffer;
@@ -102,8 +104,8 @@ function playCoinSound(){
 function updateChipsDisplay(){document.getElementById("chipBox").textContent = String(chips).padStart(5,'0');}
 function showWarningMessage(msg){const w = document.getElementById("warningMessage"); w.textContent = msg; w.style.display = "block"; setTimeout(()=>{ w.style.display="none"; },3000);}
 
-// 投幣10元，最多可按10次
-document.getElementById("addCoinBtn").addEventListener("click", ()=> {
+// 投幣10元
+document.getElementById("addCoinBtn").addEventListener("click", ()=>{
     if(coinPressCount >= maxCoinPress) return;
     chips += 10;
     coinPressCount++;
@@ -113,15 +115,6 @@ document.getElementById("addCoinBtn").addEventListener("click", ()=> {
         document.getElementById("addCoinBtn").disabled = true;
     }
 });
-
-// 發牌按鈕按下，投幣按鈕立即禁用
-document.getElementById("newGameBtn").addEventListener("click", async ()=>{
-    document.getElementById("newGameBtn").disabled=true;
-    document.getElementById("addCoinBtn").disabled=true;
-    await dealCardsAnimation();
-});
-
-updateChipsDisplay();
 
 const suits=["♠","♥","♦","♣"], values=["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
 function createDeck(){let deck=[];for(let s of suits){for(let v of values){deck.push({value:v,suit:s});}}return deck;}
@@ -185,6 +178,7 @@ async function dealCardsAnimation(){
     },1000);
 }
 
+// 以下保持原本下注、換牌、攤牌邏輯不變，直接使用你提供的程式碼
 // 下注
 document.getElementById("betBtn").addEventListener("click",()=>{
     let bet=parseInt(document.getElementById("betAmount").value);
@@ -233,6 +227,9 @@ document.getElementById("swapBtn").addEventListener("click", async ()=>{
     },2000);
 });
 
+// 發牌
+document.getElementById("newGameBtn").addEventListener("click", async ()=>{document.getElementById("newGameBtn").disabled=true; document.getElementById("addCoinBtn").disabled=true; await dealCardsAnimation();});
+
 // 攤牌
 document.getElementById("revealBtn").addEventListener("click",()=>{
     const computerCards=document.querySelectorAll("#computer-hand .card");
@@ -257,6 +254,8 @@ document.getElementById("revealBtn").addEventListener("click",()=>{
     selectedCards=[];
     if(chips===0){ coinPressCount=0; document.getElementById("addCoinBtn").disabled=false; }
 });
+
+updateChipsDisplay();
 </script>
 </body>
 </html>
