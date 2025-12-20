@@ -37,14 +37,22 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
 #button-area{display:flex; align-items:center; margin-bottom:10px;}
 #button-area button{width:40px;height:38px;background:linear-gradient(#ffffff,#dcdcdc);color:#000;border:1px solid #666;border-radius:6px;cursor:pointer;font-size:12px;margin-left:25px;margin-bottom:-10px;box-shadow:2px 2px 0 #bbb, inset 0 1px 0 #fff;transition:transform 0.05s, box-shadow 0.05s;}
 #button-area button:active{transform:translate(3px,3px);box-shadow:0 0 0 #666,inset 0 1px 0 #ccc;}
-#button-area button#start { margin-left: 50px; }
+#button-area button#start { margin-left: 25px; }
 #button-area button#func1 { margin-left: 0px; }
-#button-area button#func2 { margin-left: 50px; }
+#button-area button#func2 { margin-left: 40px; }
 #button-area button#func3 { margin-left:40px; }
-#button-area button#func4 { margin-left:10px; }
+#button-area button#cancel { margin-left:5px; }
+#button-area button#func4 { margin-left:5px; }
 
 #backBtn{position:fixed;top:10px;right:10px;padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;z-index:9999;box-shadow:2px 2px 5px rgba(0,0,0,0.3);transition: all 0.1s ease;}
 #backBtn:active{transform: translateY(2px);box-shadow:1px 1px 3px rgba(0,0,0,0.3);}
+  
+ #func1:disabled {
+    background: #ddd !important; /* 改變背景顏色 */
+    color: #888 !important;      /* 改變文字顏色 */
+    cursor: not-allowed !important;
+    box-shadow: none !important; /* 去掉立體陰影效果 */
+}
 
 </style>
 </head>
@@ -94,6 +102,7 @@ body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:colu
     <button id="func1">投幣</button>
     <button id="func2">轉到錢包</button>
     <button id="func3">選左</button>
+    <button id="cancel">取消</button> 
     <button id="func4">選右</button>
     <button id="start">開始</button>
   </div>
@@ -129,6 +138,8 @@ let bets={}, betCounts={};
 let spinning=false, pos=0;
 let centerWin=0;
 let flashingInterval=null;
+
+const func1Btn = document.getElementById('func1');
 
 function updateDigits(id,val){
   const s=val.toString().padStart(4,'0'); 
@@ -200,8 +211,29 @@ buttonConfig.forEach(cfg=>{
   wrap.append(fixed,btn,count); betBox.appendChild(wrap);
 });
 
-document.getElementById('func1').onclick = () => { clearMsg(); credit += 10; updateDigits('credit-digits', credit); playCoin(); };
-document.getElementById('func2').onclick = () => { clearMsg(); credit += win; win=0; updateDigits('credit-digits', credit); updateDigits('win-digits', win); };
+// 投幣按鈕修改：點擊一次禁用
+func1Btn.onclick = () => { 
+  clearMsg(); 
+  credit += 100; 
+  updateDigits('credit-digits', credit); 
+  playCoin(); 
+  func1Btn.disabled = true; 
+  
+};
+
+document.getElementById('func2').onclick = () => { 
+  clearMsg(); 
+  credit += win; win=0; 
+  updateDigits('credit-digits', credit); 
+  updateDigits('win-digits', win); 
+};
+
+function enableFunc1IfZero(){
+  if(win === 0 && credit === 0 && centerWin === 0 && Object.values(betCounts).every(v => v===0)){
+    func1Btn.disabled = false;
+  
+  }
+}
 
 function spin(){
   if(spinning) return;
@@ -224,21 +256,20 @@ function spin(){
       const stop = order[pos];
       const letter = stop.el.dataset.letter;
 
-      // 如果是ONCE MORE，重新跑一次
-     if(letter === 'ONCE MORE'){
-  spinning = false;
-  setTimeout(() => {
-    spin();
-  }, 1500);   // 停 1.5 秒再跑
-  return;
-   }
+      if(letter === 'ONCE MORE'){
+        spinning = false;
+        setTimeout(() => { spin(); }, 1500);
+        return;
+      }
 
       const cfg = buttonConfig.find(b=>b.ch===letter);
       const gain = cfg?bets[letter]*cfg.mult:0;
 
       if(gain>0){
         centerWin = gain; updateDigits('center-win-digits', centerWin);
-        msg.style.color='#f00'; msg.textContent=`押中${letter} 獎金${gain}元,可選左右邊`;
+        msg.style.color='#f00'; 
+        msg.style.whiteSpace = "pre-line";
+        msg.textContent=`押中${letter} 獎金${gain}元\n可選左右邊,獎金加倍`;
 
         const leftLight = document.getElementById('center-left-light');
         const rightLight = document.getElementById('center-right-light');
@@ -255,7 +286,7 @@ function spin(){
       document.querySelectorAll('.count').forEach(c=>c.textContent='0'); 
       for(let k in bets){bets[k]=0; betCounts[k]=0;} 
       document.getElementById('start').disabled = true;
-      setTimeout(()=>{document.getElementById('start').disabled=false;},5000);
+      setTimeout(()=>{document.getElementById('start').disabled=false; enableFunc1IfZero();},5000);
       spinning=false;
       return;
     }
@@ -270,6 +301,26 @@ function spin(){
   }
   nextStep();
 }
+
+document.getElementById('cancel').onclick = () => {
+    clearMsg();
+    if(centerWin > 0){
+        win += centerWin; 
+        updateDigits('win-digits', win);
+        centerWin = 0; 
+        updateDigits('center-win-digits', centerWin);
+        if(flashingInterval){ 
+            clearInterval(flashingInterval); 
+            flashingInterval = null; 
+            document.getElementById('center-left-light').style.background = '#bbb'; 
+            document.getElementById('center-right-light').style.background = '#bbb'; 
+        }
+        msg.style.color = '#f00';
+        msg.textContent = '已放棄選邊贏雙倍獎金';
+        enableFunc1IfZero();
+    }
+};  
+  
 
 document.getElementById('start').onclick = () => { 
   clearMsg();
@@ -314,6 +365,8 @@ function stopFlashing(selected){
         }, 300);
 
       } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent=`選錯邊了, 獎金歸零`; }
+
+      enableFunc1IfZero();
       return;
     }
     if(count%2===0){ leftLight.style.background='#f00'; rightLight.style.background='#bbb'; }
