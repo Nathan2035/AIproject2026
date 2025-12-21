@@ -10,25 +10,11 @@ html, body { margin:0; padding:0; background:#fff; font-family:monospace; }
 canvas { position:absolute; top:0; left:0; z-index:1; }
 .player, .enemy { position:absolute; z-index:2; }
 .player { bottom:30px; width:50px; height:100px; }
-.playerImg { position:absolute; top:10px; left:3px; width:56px; height:94px; background-image:url('You.png'); background-size:cover; background-position:center; pointer-events:none; }
+.playerImg { position:absolute; top:10px; left:3px; width:55px; height:93px; background-image:url('You.png'); background-size:cover; background-position:center; pointer-events:none; }
 .enemy { width:50px; height:100px; position:absolute; }
 .enemyImg { position:absolute; top:10px; left:5px; width:50px; height:88px; background-size:cover; background-position:center; pointer-events:none; }
 .hitbox { position:absolute; border:2px dashed red; border-radius:18px; pointer-events:none; z-index:10; }
-#adBoard {
-  position:absolute;
-  width:65px;
-  height:50px;
-  background:#fff;
-  border:2px solid #000;
-  color:#000;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-weight:bold;
-  font-size:18px;
-  z-index:5;
-  display:none;
-}
+#adBoard { position:absolute; width:65px; height:50px; background:#fff; border:2px solid #000; color:#000; display:flex; justify-content:center; align-items:center; font-weight:bold; font-size:18px; z-index:5; display:none; }
 #controls { display:flex; justify-content:space-between; align-items:center; margin-top:20px; }
 #ledDisplay { display:flex; gap:10px; padding:6px 10px; border:2px solid #0f0; background:#000; border-radius:5px; align-items:center; }
 .digit { display:inline-block; min-width:16px; padding:1px 3px; background:#fff; color:#000; font-size:18px; border:1px solid #000; text-align:center; }
@@ -36,9 +22,26 @@ canvas { position:absolute; top:0; left:0; z-index:1; }
 #startBtn { padding:8px 16px; font-size:16px; cursor:pointer; background:#0a0; border:none; border-radius:5px; color:#fff; height:fit-content; }
 #startBtn.disabled { background:#444; cursor:not-allowed; }
 #gameOver { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:48px; color:yellow; z-index:3; display:none; pointer-events:none; }
+
+#backBtn{position:fixed;top:10px;right:10px;padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;z-index:9999;box-shadow:2px 2px 5px rgba(0,0,0,0.3);transition: all 0.1s ease;}
+#backBtn:active{transform: translateY(2px);box-shadow:1px 1px 3px rgba(0,0,0,0.3);}
+  #func1:disabled {
+    background: #ddd !important; /* 改變背景顏色 */
+    color: #888 !important;      /* 改變文字顏色 */
+    cursor: not-allowed !important;
+    box-shadow: none !important; /* 去掉立體陰影效果 */
+}
+
 </style>
 </head>
 <body>
+
+<div id="top-right">
+<button id="backBtn">回到上一頁</button>
+<div id="version" style="position:fixed; top:50px; right:20px; font-size:14px; color:#333333;">版本: V0.01</div>
+</div>
+
+
 <div id="gameWrapper">
   <div id="game">
     <canvas id="roadCanvas" width="400" height="600"></canvas>
@@ -69,7 +72,7 @@ const adBoard = document.getElementById('adBoard');
 const gameWidth = 400, gameHeight = 600, playerWidth=50;
 let playerPos = 175; player.style.left = playerPos+'px';
 let targetPlayerPos = playerPos;
-const PLAYER_MOVE_SPEED = 150; // px/sec
+const PLAYER_MOVE_SPEED = 150;
 
 let enemies = [];
 let gameRunning=false;
@@ -94,7 +97,6 @@ const GAP_PX = GAP_KM * 1000 * PX_PER_M;
 
 let lineOffset=0;
 
-// 左右邊界及 hitbox 偏移
 const LEFT_MARGIN = 50 + 20;
 const RIGHT_MARGIN = gameWidth - 50 - 20;
 const LINE_WIDTH = 5;
@@ -106,54 +108,17 @@ const PLAYER_MAX_X = RIGHT_MARGIN - playerWidth - LINE_WIDTH + PLAYER_HITBOX_OFF
 const ENEMY_MIN_X = LEFT_MARGIN - ENEMY_HITBOX_OFFSET;
 const ENEMY_MAX_X = RIGHT_MARGIN - 50 - LINE_WIDTH + ENEMY_HITBOX_OFFSET - 4;
 
-// 廣告板每整數公里出現
 let nextAdKm = 1;
 let adBoardActive = false;
 let adBoardPosY = -50;
 
-// ----- Audio -----
-let audioCtx, engineOsc, engineGain, tireNoise, audioInitialized=false;
-let lastPlayerX = playerPos;
-
-function initEngineSound(){
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  
-  engineOsc = audioCtx.createOscillator();
-  engineOsc.type = 'sawtooth';
-  engineOsc.frequency.value = 60;
-  
-  engineGain = audioCtx.createGain();
-  engineGain.gain.value = 0.5 * 2; // 放大 1 倍
-
-  engineOsc.connect(engineGain).connect(audioCtx.destination);
-  engineOsc.start();
-}
-
-function initTireNoise(){
-  tireNoise = audioCtx.createOscillator();
-  tireNoise.type = 'square';
-  tireNoise.frequency.value = 0;
-  const gainNode = audioCtx.createGain();
-  gainNode.gain.value = 0; // 初始靜音
-  tireNoise.connect(gainNode).connect(audioCtx.destination);
-  tireNoise.start();
-
-  tireNoise.update = (deltaX)=>{
-    const diff = Math.abs(deltaX);
-    gainNode.gain.value = Math.min(diff/5,1)*0.5*2; // 放大 1 倍
-  }
-}
-
-// ----- 遊戲邏輯 -----
 function drawRoad(){
   ctx.clearRect(0,0,gameWidth,gameHeight);
   ctx.fillStyle='#C2B280'; 
   ctx.fillRect(0,0,LEFT_MARGIN,gameHeight); 
   ctx.fillRect(RIGHT_MARGIN,0,gameWidth-RIGHT_MARGIN,gameHeight);
-  
   ctx.fillStyle='#555'; 
   ctx.fillRect(LEFT_MARGIN,0,RIGHT_MARGIN-LEFT_MARGIN,gameHeight);
-  
   ctx.strokeStyle='#fff'; 
   ctx.lineWidth=LINE_WIDTH;
   ctx.beginPath(); 
@@ -164,7 +129,6 @@ function drawRoad(){
   ctx.moveTo(RIGHT_MARGIN,0); 
   ctx.lineTo(RIGHT_MARGIN,gameHeight); 
   ctx.stroke();
-
   ctx.setLineDash([WHITE_LINE_PX,GAP_PX]);
   ctx.beginPath(); 
   ctx.moveTo(gameWidth/2,lineOffset); 
@@ -218,7 +182,6 @@ function spawnEnemy(){
   enemy.vx = (Math.random()*0.6 - 0.3);
   enemy.minX = ENEMY_MIN_X;
   enemy.maxX = ENEMY_MAX_X;
-
   enemy.targetSpeed = targetSpeed * (0.7 + Math.random()*0.2);
   enemy.speed = enemy.targetSpeed * (0.5 + Math.random()*0.3);
   enemy.acceleration = (enemy.targetSpeed - enemy.speed) / 3;
@@ -305,6 +268,9 @@ function gameLoop(timestamp){
   const delta = (timestamp - lastTimestamp)/1000;
   lastTimestamp = timestamp;
 
+  if(km >= 1 && targetSpeed === 100) targetSpeed = 150;
+  if(km >= 2 && targetSpeed === 150) targetSpeed = 200;
+
   if(speed < targetSpeed){ speed += acceleration * delta; if(speed>targetSpeed) speed=targetSpeed; }
   km += speed * delta / 3600;
 
@@ -315,10 +281,9 @@ function gameLoop(timestamp){
   drawRoad();
   updateInfo();
 
-  // 廣告板每整數公里出現一次，更新文字
   if(!adBoardActive && Math.floor(km) === nextAdKm){
     adBoardActive = true;
-    adBoardPosY = -50; // 從畫面上方開始
+    adBoardPosY = -50;
     adBoard.style.display = 'flex';
     adBoard.style.left = RIGHT_MARGIN + 5 + 'px';
     adBoard.textContent = `恭喜達成${nextAdKm}KM`;
@@ -340,12 +305,6 @@ function gameLoop(timestamp){
     playerPos += move;
     playerPos = clamp(playerPos, PLAYER_MIN_X, PLAYER_MAX_X);
     player.style.left = playerPos+'px';
-  }
-
-  // 輪胎摩擦聲
-  if(audioInitialized){
-    tireNoise.update(playerPos - lastPlayerX);
-    lastPlayerX = playerPos;
   }
 
   const playerRect = getScaledRect(player.getBoundingClientRect(), PLAYER_HITBOX_SCALE);
@@ -417,14 +376,6 @@ startBtn.addEventListener('click',()=>{
   if(startBtn.disabled) return;
   startBtn.disabled=true;
   startBtn.classList.add('disabled');
-
-  // 初始化聲音 (用戶互動後)
-  if(!audioInitialized){
-    initEngineSound();
-    initTireNoise();
-    audioInitialized = true;
-  }
-
   clearEnemies();
   playerPos=175; targetPlayerPos=175; player.style.left=playerPos+'px';
   gameOverText.style.display='none';
