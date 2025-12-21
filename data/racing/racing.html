@@ -31,7 +31,7 @@ canvas { position:absolute; top:0; left:0; z-index:1; }
 <body>
 
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.06</div>
+<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.02</div>
 
 
 <div id="gameWrapper">
@@ -51,6 +51,8 @@ canvas { position:absolute; top:0; left:0; z-index:1; }
 </div>
 
 <script>
+backBtn.onclick=()=>{window.history.back();}; 
+
 const game = document.getElementById('game');
 const player = document.getElementById('player');
 const startBtn = document.getElementById('startBtn');
