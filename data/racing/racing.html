@@ -16,7 +16,7 @@ canvas { position:absolute; top:0; left:0; z-index:1; }
 .hitbox { position:absolute; border:2px dashed red; border-radius:18px; pointer-events:none; z-index:10; }
 #adBoard { position:absolute; width:65px; height:50px; background:#fff; border:2px solid #000; color:#000; display:flex; justify-content:center; align-items:center; font-weight:bold; font-size:18px; z-index:5; display:none; }
 #controls { display:flex; justify-content:space-between; align-items:center; margin-top:20px; }
-#ledDisplay { display:flex; gap:10px; padding:6px 10px; border:2px solid #0f0; background:#000; border-radius:5px; align-items:center; }
+#ledDisplay { display:flex; gap:10px; padding:6px 10px; border:2px solid #000; background:#000; border-radius:5px; align-items:center; }
 .digit { display:inline-block; min-width:16px; padding:1px 3px; background:#fff; color:#000; font-size:18px; border:1px solid #000; text-align:center; }
 .text { display:inline-block; color:#fff; font-size:18px; }
 #startBtn { padding:8px 16px; font-size:16px; cursor:pointer; background:#0a0; border:none; border-radius:5px; color:#fff; height:fit-content; }
@@ -24,6 +24,7 @@ canvas { position:absolute; top:0; left:0; z-index:1; }
 #gameOver { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:48px; color:yellow; z-index:3; display:none; pointer-events:none; }
 #backBtn{ position:fixed; top:10px; right:10px; padding:6px 12px; font-size:14px; background:#fff; border:2px solid #ccc; border-radius:6px; cursor:pointer; color:#333; z-index:9999; box-shadow: 2px 2px #dddddd; }
 #backBtn:active { box-shadow: 2px 2px #eeeeee; transform: translateY(2px); }
+#highScoreDisplay { display:flex; justify-content:center; gap:1px; padding:6px 10px; border:2px solid #000; background:#000; border-radius:5px; align-items:center; margin-bottom:10px; }
 </style>
 </head>
 <body>
@@ -32,6 +33,7 @@ canvas { position:absolute; top:0; left:0; z-index:1; }
 <div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.03</div>
 
 <div id="gameWrapper">
+  <div id="highScoreDisplay"></div> <!-- 最高紀錄 -->
   <div id="game">
     <canvas id="roadCanvas" width="400" height="600"></canvas>
     <div class="player" id="player"><div class="playerImg"></div></div>
@@ -59,6 +61,7 @@ const ctx = canvas.getContext('2d');
 const kmDisplay = document.getElementById('kmDisplay');
 const speedDisplay = document.getElementById('speedDisplay');
 const adBoard = document.getElementById('adBoard');
+const highScoreDisplay = document.getElementById('highScoreDisplay');
 
 const gameWidth = 400, gameHeight = 600, playerWidth=50;
 let playerPos = 175; player.style.left = playerPos+'px';
@@ -74,6 +77,8 @@ let targetSpeed=100;
 const acceleration=100/6;
 let lastTimestamp=0;
 let enemySpawnTimer = 0;
+
+let highScore = 0; // 最高紀錄
 
 const PLAYER_HITBOX_SCALE = 0.8;
 const ENEMY_HITBOX_SCALE = 0.8;
@@ -105,8 +110,6 @@ let adBoardPosY = -50;
 
 // --- AudioContext & 引擎聲音 ---
 let audioCtx, engineOsc, engineNoise, engineGain, engineFilter, engineRunning=false;
-
-// --- 撞車音效 ---
 let crashBuffer = null;
 function loadCrashSound(){
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -127,7 +130,7 @@ function playCrashSound(){
 function startEngineSound() {
   if(engineRunning) return;
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  loadCrashSound(); // 載入撞車音效
+  loadCrashSound();
 
   engineOsc = audioCtx.createOscillator();
   engineOsc.type = 'sawtooth';
@@ -172,23 +175,6 @@ function updateEngineSound(delta){
   engineGain.gain.setTargetAtTime(0.05 + speed/300*0.25, audioCtx.currentTime, 0.1);
 }
 
-// --- 遊戲邏輯 ---
-function drawRoad(){
-  ctx.clearRect(0,0,gameWidth,gameHeight);
-  ctx.fillStyle='#C2B280'; 
-  ctx.fillRect(0,0,LEFT_MARGIN,gameHeight); 
-  ctx.fillRect(RIGHT_MARGIN,0,gameWidth-RIGHT_MARGIN,gameHeight);
-  ctx.fillStyle='#555'; 
-  ctx.fillRect(LEFT_MARGIN,0,RIGHT_MARGIN-LEFT_MARGIN,gameHeight);
-  ctx.strokeStyle='#fff'; 
-  ctx.lineWidth=LINE_WIDTH;
-  ctx.beginPath(); ctx.moveTo(LEFT_MARGIN,0); ctx.lineTo(LEFT_MARGIN,gameHeight); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(RIGHT_MARGIN,0); ctx.lineTo(RIGHT_MARGIN,gameHeight); ctx.stroke();
-  ctx.setLineDash([WHITE_LINE_PX,GAP_PX]);
-  ctx.beginPath(); ctx.moveTo(gameWidth/2,lineOffset); ctx.lineTo(gameWidth/2,gameHeight+lineOffset); ctx.stroke();
-  ctx.setLineDash([]);
-}
-
 // --- LED顯示 ---
 function displayLED(container,text){
   container.innerHTML='';
@@ -205,6 +191,11 @@ function updateInfo(){
   const [kmInteger, kmDecimal] = kmFixed.split('.');
   displayLED(speedDisplay, `${Math.floor(speed).toString().padStart(3,'0')} KM/H`);
   displayLED(kmDisplay, `${kmInteger.padStart(3,'0')}.${kmDecimal} KM`);
+}
+function updateHighScoreDisplay() {
+  const roundedHigh = highScore.toFixed(1);
+  const [intPart, decPart] = roundedHigh.split('.');
+  displayLED(highScoreDisplay, `最高紀錄 : ${intPart.padStart(3,'0')}.${decPart} KM`);
 }
 
 // --- 玩家滑鼠/觸控 ---
@@ -232,7 +223,6 @@ function getScaledRect(rect, scale){
   const cy = rect.top + rect.height / 2;
   return {left: cx-w/2, right: cx+w/2, top: cy-h/2, bottom: cy+h/2};
 }
-
 function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
 function pointToRectDist(px, py, rect){
   const cx = clamp(px, rect.left, rect.right);
@@ -240,7 +230,6 @@ function pointToRectDist(px, py, rect){
   const dx = px-cx; const dy = py-cy;
   return Math.sqrt(dx*dx + dy*dy);
 }
-
 function roundedRectCollision(a,b,r){
   const aCorners=[[a.left+r,a.top+r],[a.right-r,a.top+r],[a.left+r,a.bottom-r],[a.right-r,a.bottom-r]];
   const bCorners=[[b.left+r,b.top+r],[b.right-r,b.top+r],[b.left+r,b.bottom-r],[b.right-r,b.bottom-r]];
@@ -258,10 +247,8 @@ function spawnEnemy(){
     topY = -100 - Math.random()*200;
     attempts++;
   } while(
-    enemies.some(e => 
-      Math.abs(parseFloat(e.style.left)-laneX)<50 && 
-      Math.abs(parseFloat(e.style.top)-topY)<100
-    ) && attempts < 20
+    enemies.some(e => Math.abs(parseFloat(e.style.left)-laneX)<50 && Math.abs(parseFloat(e.style.top)-topY)<100)
+    && attempts < 20
   );
 
   const enemy = document.createElement('div');
@@ -315,6 +302,22 @@ function adjustEnemyDistances(){
 }
 
 // --- 遊戲主迴圈 ---
+function drawRoad(){
+  ctx.clearRect(0,0,gameWidth,gameHeight);
+  ctx.fillStyle='#C2B280'; 
+  ctx.fillRect(0,0,LEFT_MARGIN,gameHeight); 
+  ctx.fillRect(RIGHT_MARGIN,0,gameWidth-RIGHT_MARGIN,gameHeight);
+  ctx.fillStyle='#555'; 
+  ctx.fillRect(LEFT_MARGIN,0,RIGHT_MARGIN-LEFT_MARGIN,gameHeight);
+  ctx.strokeStyle='#fff'; 
+  ctx.lineWidth=LINE_WIDTH;
+  ctx.beginPath(); ctx.moveTo(LEFT_MARGIN,0); ctx.lineTo(LEFT_MARGIN,gameHeight); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(RIGHT_MARGIN,0); ctx.lineTo(RIGHT_MARGIN,gameHeight); ctx.stroke();
+  ctx.setLineDash([WHITE_LINE_PX,GAP_PX]);
+  ctx.beginPath(); ctx.moveTo(gameWidth/2,lineOffset); ctx.lineTo(gameWidth/2,gameHeight+lineOffset); ctx.stroke();
+  ctx.setLineDash([]);
+}
+
 function gameLoop(timestamp){
   if(!lastTimestamp) lastTimestamp=timestamp;
   const delta = (timestamp - lastTimestamp)/1000;
@@ -423,6 +426,14 @@ function gameLoop(timestamp){
 
   adjustEnemyDistances();
   if(engineRunning) updateEngineSound(delta);
+
+  // --- 更新最高紀錄 ---
+  const roundedKm = parseFloat(displayKm.toFixed(1));
+  if(roundedKm > highScore){
+    highScore = roundedKm;
+    updateHighScoreDisplay();
+  }
+
   if(gameRunning) requestAnimationFrame(gameLoop);
 }
 
@@ -446,10 +457,11 @@ startBtn.addEventListener('click',()=>{
   requestAnimationFrame(gameLoop);
 });
 
-// --- 初始化頁面一開始就顯示賽道、速度和公里數 ---
+// --- 初始化頁面 ---
 km = 0; speed = 0; displayKm = 0;
 drawRoad();
 updateInfo();
+updateHighScoreDisplay();
 </script>
 
 </body>
