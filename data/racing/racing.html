@@ -31,8 +31,7 @@ canvas { position:absolute; top:0; left:0; z-index:1; }
 <body>
 
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.02</div>
-
+<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.05</div>
 
 <div id="gameWrapper">
   <div id="game">
@@ -106,6 +105,71 @@ let nextAdKm = 1;
 let adBoardActive = false;
 let adBoardPosY = -50;
 
+// --- 音效 ---
+const crashAudio = new Audio('Crash_sound.mp3');
+const tireAudio = new Audio('tire_sound.mp3');
+crashAudio.preload = 'auto';
+tireAudio.preload = 'auto';
+crashAudio.volume = 0.5;
+tireAudio.volume = 0.3;
+tireAudio.loop = true;
+
+// --- 引擎聲音模擬 ---
+let audioCtx, engineOsc, engineNoise, engineGain, engineFilter, engineRunning=false;
+
+function startEngineSound() {
+  if(engineRunning) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  engineOsc = audioCtx.createOscillator();
+  engineOsc.type = 'sawtooth';
+
+  const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<data.length;i++) data[i] = Math.random()*2-1;
+  engineNoise = audioCtx.createBufferSource();
+  engineNoise.buffer = buffer;
+  engineNoise.loop = true;
+
+  engineGain = audioCtx.createGain();
+  engineGain.gain.value = 0.15;
+
+  engineFilter = audioCtx.createBiquadFilter();
+  engineFilter.type = 'lowpass';
+  engineFilter.frequency.value = 800;
+
+  engineOsc.connect(engineFilter);
+  engineNoise.connect(engineFilter);
+  engineFilter.connect(engineGain);
+  engineGain.connect(audioCtx.destination);
+
+  engineOsc.frequency.value = speedToHz(speed);
+  engineOsc.start();
+  engineNoise.start();
+  engineRunning = true;
+}
+
+function stopEngineSound() {
+  if(!engineRunning) return;
+  engineOsc.stop();
+  engineNoise.stop();
+  audioCtx.close();
+  engineRunning = false;
+}
+
+function speedToHz(spd) {
+  return 100 + spd * 5;
+}
+
+function updateEngineSound(delta){
+  if(!engineRunning) return;
+  engineOsc.frequency.setTargetAtTime(speedToHz(speed), audioCtx.currentTime, 0.1);
+  engineFilter.frequency.setTargetAtTime(500 + speed*1.5, audioCtx.currentTime, 0.1);
+  engineGain.gain.setTargetAtTime(0.05 + speed/300*0.25, audioCtx.currentTime, 0.1);
+}
+
+// ------------------------------
+
 function drawRoad(){
   ctx.clearRect(0,0,gameWidth,gameHeight);
   ctx.fillStyle='#C2B280'; 
@@ -131,6 +195,7 @@ function drawRoad(){
   ctx.setLineDash([]);
 }
 
+// 鼠標/觸控控制
 game.addEventListener('mousemove', e=>{
   if(!gameRunning) return;
   const rect = game.getBoundingClientRect();
@@ -257,6 +322,8 @@ function adjustEnemyDistances(){
   }
 }
 
+let moveTimer = 0; // 左右連續移動計時器
+
 function gameLoop(timestamp){
   if(!lastTimestamp) lastTimestamp=timestamp;
   const delta = (timestamp - lastTimestamp)/1000;
@@ -293,12 +360,26 @@ function gameLoop(timestamp){
     }
   }
 
+  // 玩家移動與摩擦聲（連續左右移動1秒）
   const diff = targetPlayerPos - (playerPos + playerWidth/2);
   if(Math.abs(diff) > 1){
     const move = Math.sign(diff) * Math.min(Math.abs(diff), PLAYER_MOVE_SPEED * delta);
     playerPos += move;
     playerPos = clamp(playerPos, PLAYER_MIN_X, PLAYER_MAX_X);
     player.style.left = playerPos+'px';
+
+    if(Math.abs(move) > 50){
+      moveTimer += delta;
+      if(moveTimer >= 1 && tireAudio.paused){
+        tireAudio.play().catch(()=>{});
+      }
+    } else {
+      moveTimer = 0;
+      if(!tireAudio.paused) tireAudio.pause();
+    }
+  } else {
+    moveTimer = 0;
+    if(!tireAudio.paused) tireAudio.pause();
   }
 
   const playerRect = getScaledRect(player.getBoundingClientRect(), PLAYER_HITBOX_SCALE);
@@ -353,23 +434,38 @@ function gameLoop(timestamp){
       div.style.height = (enemyRect.bottom - enemyRect.top)+'px';
     } else enemy.hitboxDiv.style.display='none';
 
+    // 撞車判定
     if(roundedRectCollision(playerRect, enemyRect, HITBOX_RADIUS)){
       gameOverText.style.display='block';
       gameRunning=false;
       startBtn.classList.remove('disabled');
       startBtn.disabled=false;
+      stopEngineSound();
+
+      crashAudio.currentTime = 0;
+      crashAudio.play().catch(()=>{});
+      tireAudio.pause();
     }
   });
 
   adjustEnemyDistances();
 
+  if(engineRunning) updateEngineSound(delta);
+
   if(gameRunning) requestAnimationFrame(gameLoop);
 }
 
-startBtn.addEventListener('click',()=>{
+startBtn.addEventListener('click', ()=>{
   if(startBtn.disabled) return;
   startBtn.disabled=true;
   startBtn.classList.add('disabled');
+
+  // 初始化音效
+  crashAudio.pause();
+  crashAudio.currentTime = 0;
+  tireAudio.pause();
+  tireAudio.currentTime = 0;
+
   clearEnemies();
   playerPos=175; targetPlayerPos=175; player.style.left=playerPos+'px';
   gameOverText.style.display='none';
@@ -379,10 +475,17 @@ startBtn.addEventListener('click',()=>{
   enemySpawnTimer = 0;
   nextAdKm = 1;
   adBoardActive = false;
+  moveTimer = 0;
   updateInfo();
   gameRunning=true;
+  startEngineSound();
+
+  // iOS 需使用者互動後播放摩擦聲
+  tireAudio.play().catch(()=>{});
+
   requestAnimationFrame(gameLoop);
 });
 </script>
+
 </body>
 </html>
