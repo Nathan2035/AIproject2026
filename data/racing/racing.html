@@ -23,23 +23,15 @@ canvas { position:absolute; top:0; left:0; z-index:1; }
 #startBtn.disabled { background:#444; cursor:not-allowed; }
 #gameOver { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:48px; color:yellow; z-index:3; display:none; pointer-events:none; }
 
-#backBtn{position:fixed;top:10px;right:10px;padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;z-index:9999;box-shadow:2px 2px 5px rgba(0,0,0,0.3);transition: all 0.1s ease;}
-#backBtn:active{transform: translateY(2px);box-shadow:1px 1px 3px rgba(0,0,0,0.3);}
-  #func1:disabled {
-    background: #ddd !important; /* 改變背景顏色 */
-    color: #888 !important;      /* 改變文字顏色 */
-    cursor: not-allowed !important;
-    box-shadow: none !important; /* 去掉立體陰影效果 */
-}
+#backBtn{ position:fixed; top:10px; right:10px; padding:6px 12px; font-size:14px; background:#fff; border:2px solid #ccc; border-radius:6px; cursor:pointer; color:#333; z-index:9999; box-shadow: 2px 2px #dddddd; }
+#backBtn:active { box-shadow: 2px 2px #eeeeee; transform: translateY(2px); }
 
 </style>
 </head>
 <body>
 
-<div id="top-right">
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:50px; right:20px; font-size:14px; color:#333333;">版本: V0.01</div>
-</div>
+<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.06</div>
 
 
 <div id="gameWrapper">
