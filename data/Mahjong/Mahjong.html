@@ -2,113 +2,124 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>台灣麻將 - 跨平台版 V0.05</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>台灣麻將 - 全設備適配版 V0.06</title>
 <style>
-    /* 基礎樣式與 PC/iPad 適應 */
     :root { --tile-w: 44px; --tile-h: 62px; }
     
     body { 
         font-family: "Microsoft JhengHei", sans-serif; 
-        display: flex; flex-direction: column; align-items: center; 
-        background: #2c3e50; margin: 0; padding: 10px; color: white; 
-        overflow: hidden; touch-action: manipulation; /* 防止觸控延遲 */
+        background: #2c3e50; margin: 0; padding: 0; color: white; 
+        overflow: hidden; touch-action: manipulation;
+        display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+        height: 100vh; width: 100vw;
+    }
+
+    /* 核心縮放容器：確保桌子跟按鈕永遠在一起 */
+    #game-container {
+        display: flex; flex-direction: column; align-items: center;
+        transform-origin: top center; padding: 10px;
     }
 
     #table {
-        width: 950px; height: 600px; background: #27ae60; border: 12px solid #8b5e3c; border-radius: 25px;
-        position: relative; box-shadow: inset 0 0 50px rgba(0,0,0,0.5); padding: 10px; box-sizing: border-box;
-        transform-origin: top center; /* 方便縮放 */
+        width: 950px; height: 580px; background: #27ae60; border: 12px solid #8b5e3c; border-radius: 25px;
+        position: relative; box-shadow: inset 0 0 50px rgba(0,0,0,0.5); box-sizing: border-box;
     }
 
-    /* 版本與按鈕樣式 */
     #backBtn { position:fixed; top:10px; right:10px; padding:8px 15px; font-size:14px; background:#fff; border:2px solid #ccc; border-radius:6px; cursor:pointer; color:#333; z-index:9999; }
     
-    /* 牌組區域 */
+    /* 牌手區域 */
     #dealerHand { display: flex; position: absolute; height: var(--tile-h); top: 15px; left: 50%; transform: translateX(calc(-50% + 30px)); width: 800px; justify-content: center; }
     #playerHand { display: flex; position: absolute; height: var(--tile-h); bottom: 15px; left: 50%; transform: translateX(-50%); width: 800px; justify-content: center; }
     
     .hand img { 
         width: var(--tile-w); height: var(--tile-h); position: absolute; 
-        cursor: pointer; transition: 0.2s; background: white; 
-        border: 1px solid #333; border-radius: 4px; 
-        -webkit-user-drag: none; /* 防止 iPad 誤觸拖曳 */
+        cursor: pointer; transition: 0.1s; background: white; 
+        border: 1px solid #333; border-radius: 4px; -webkit-user-drag: none;
     }
-    
-    /* PC 上的懸停效果，iPad 點擊也會有感 */
-    .hand img:active, .hand img:hover { transform: translateY(-15px); z-index: 100; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+    .hand img:active { transform: translateY(-20px); z-index: 100; }
 
-    #discardArea { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); width: 650px; height: 200px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; padding: 5px; z-index: 10; }
+    #discardArea { position: absolute; top: 130px; left: 50%; transform: translateX(-50%); width: 650px; height: 180px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; padding: 5px; }
     .discardTile { width: 30px; height: 42px; border: 1px solid #333; background: white; pointer-events: none; }
 
     #playerMeldArea { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; width: 850px; }
     #dealerMeldArea { position: absolute; top: 85px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; width: 850px; flex-direction: row-reverse; }
     .meldGroup { display: flex; gap: 2px; background: rgba(0,0,0,0.2); padding: 3px; border-radius: 5px; }
-    .meldGroup img { width: 35px; height: 50px; background: #eee; }
+    .meldGroup img { width: 35px; height: 50px; }
 
-    /* 提示層 */
-    .messageLayer { position: absolute; color: #f1c40f; font-size: 28px; font-weight: bold; text-shadow: 2px 2px 5px black; opacity: 0; transition: 0.4s; z-index: 1000; width: 100%; text-align: center; pointer-events: none; }
+    .messageLayer { position: absolute; color: #f1c40f; font-size: 26px; font-weight: bold; text-shadow: 2px 2px 5px black; opacity: 0; transition: 0.4s; z-index: 1000; width: 100%; text-align: center; pointer-events: none; }
     
+    /* 按鈕控制區優化：增加高度與間距 */
     #controls { 
-        margin-top: 10px; background: #ecf0f1; padding: 15px 30px; border-radius: 50px; 
-        color: #333; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center;
+        width: 950px; margin-top: 10px; background: #ecf0f1; padding: 15px; border-radius: 15px; 
+        color: #333; display: flex; align-items: center; gap: 10px; justify-content: center; box-sizing: border-box;
     }
     
-    button { padding: 10px 20px; border-radius: 20px; border: none; background: #2980b9; color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
+    button { padding: 12px 18px; border-radius: 10px; border: none; background: #2980b9; color: white; font-weight: bold; cursor: pointer; font-size: 18px; min-width: 80px; }
     button.disabled { background: #bdc3c7; cursor: not-allowed; opacity: 0.5; }
+    button:active:not(.disabled) { background: #1a5276; transform: scale(0.95); }
 
-    #chiChoices { 
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-        background: rgba(0,0,0,0.9); padding: 25px; border-radius: 20px; display: none; gap: 15px; z-index: 2000; border: 2px solid #f1c40f; 
-    }
+    #chiChoices { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 20px; border-radius: 20px; display: none; gap: 15px; z-index: 2000; border: 2px solid #f1c40f; }
     .chi-group { display: flex; gap: 5px; cursor: pointer; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); }
 </style>
 </head>
 <body>
 
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:50px; right:20px; font-size:12px;">V0.05</div>
 
-<div id="table">
-    <div id="dealerHand" class="hand"></div>
-    <div id="dealerMeldArea"></div>
-    <div id="discardArea"></div>
-    <div id="tableMessage" class="messageLayer" style="top: 35%; white-space: pre-wrap;"></div>
-    <div id="dealerMessage" class="messageLayer" style="top:120px"></div>
-    <div id="playerMessage" class="messageLayer" style="bottom:120px"></div>
-    <div id="playerMeldArea"></div>
-    <div id="playerHand" class="hand"></div>
-    <div id="chiChoices"></div>
-    <div id="diceContainer" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); gap:20px; z-index:3000;">
-        <img id="dice1" style="width:70px;" src="images/1.png">
-        <img id="dice2" style="width:70px;" src="images/1.png">
+<div id="game-container">
+    <div id="version" style="width:100%; text-align:right; font-size:12px; margin-bottom:5px;">V0.06</div>
+    
+    <div id="table">
+        <div id="dealerHand" class="hand"></div>
+        <div id="dealerMeldArea"></div>
+        <div id="discardArea"></div>
+        <div id="tableMessage" class="messageLayer" style="top: 35%; white-space: pre-wrap;"></div>
+        <div id="dealerMessage" class="messageLayer" style="top:120px"></div>
+        <div id="playerMessage" class="messageLayer" style="bottom:120px"></div>
+        <div id="playerMeldArea"></div>
+        <div id="playerHand" class="hand"></div>
+        <div id="chiChoices"></div>
+        <div id="diceContainer" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); gap:20px; z-index:3000;">
+            <img id="dice1" style="width:70px;" src="images/1.png">
+            <img id="dice2" style="width:70px;" src="images/1.png">
+        </div>
+    </div>
+
+    <div id="controls">
+        <span id="moneyDisplay" style="font-weight:bold; font-size:18px; margin-right:10px;">$10000</span>
+        <button id="rollDiceBtn">開始</button>
+        <button id="drawBtn" class="disabled">摸牌</button>
+        <button id="chiBtn" class="disabled">吃</button>
+        <button id="pengBtn" class="disabled">碰</button>
+        <button id="gangBtn" class="disabled">槓</button>
+        <button id="huBtn" class="disabled">胡牌</button>
+        <span style="font-size: 14px; margin-left:10px;">牌堆:<b id="deckCount">0</b></span>
     </div>
 </div>
 
-<div id="controls">
-    <span id="moneyDisplay" style="font-weight:bold; font-size:18px;">籌碼: $10000</span>
-    <button id="rollDiceBtn">開始遊戲</button>
-    <button id="drawBtn" class="disabled">摸牌</button>
-    <button id="chiBtn" class="disabled">吃</button>
-    <button id="pengBtn" class="disabled">碰</button>
-    <button id="gangBtn" class="disabled">槓</button>
-    <button id="huBtn" class="disabled">胡牌</button>
-    <span style="font-size: 14px;">牌堆：<b id="deckCount">0</b></span>
-</div>
-
 <script>
-// 針對 iPad 螢幕縮放邏輯
-function adjustScale() {
-    const table = document.getElementById('table');
-    const scale = Math.min(window.innerWidth / 1000, window.innerHeight / 800);
-    if (scale < 1) table.style.transform = `scale(${scale})`;
+// 全新自適應縮放邏輯：確保 table + controls 永遠在畫面內
+function autoScale() {
+    const container = document.getElementById('game-container');
+    const windowW = window.innerWidth;
+    const windowH = window.innerHeight;
+    const contentW = 980; // 比 table 寬一點點
+    const contentH = 750; // table + controls 的總高度
+    
+    const scale = Math.min(windowW / contentW, windowH / contentH);
+    container.style.transform = `scale(${scale})`;
+    // 如果縮放了，調整 margin 讓它靠頂部
+    container.style.marginTop = `${(windowH - contentH * scale) / 2}px`;
 }
-window.addEventListener('resize', adjustScale);
-adjustScale();
+window.addEventListener('resize', autoScale);
+window.addEventListener('orientationchange', autoScale);
+autoScale();
 
 const $ = id => document.getElementById(id);
 $('backBtn').onclick=()=>{window.history.back();};
 
+// --- 以下保留 V0.04/0.05 的所有核心邏輯 ---
 let deck=[], playerHand=[], dealerHand=[], playerMelds=[], dealerMelds=[];
 let playerMoney = 10000, initialDealt = false;
 let playerTurn=true, hasDrawnThisTurn=false, lastDiscardedTile=null;
@@ -149,16 +160,16 @@ function updateUI() {
         img.style.left = `${playerHand.length*gap + 15}px`; img.onclick = () => playTile('temp');
         $('playerHand').appendChild(img);
     }
-    if(dealerTempDraw) {
-        const img = document.createElement('img'); img.src = `images/back.png`; 
-        img.style.left = `-60px`; $('dealerHand').appendChild(img);
-    }
     dealerHand.forEach((t, i) => {
         const img = document.createElement('img'); img.src = `images/back.png`;
         img.style.left = `${i*gap}px`; $('dealerHand').appendChild(img);
     });
+    if(dealerTempDraw) {
+        const img = document.createElement('img'); img.src = `images/back.png`; 
+        img.style.left = `-60px`; $('dealerHand').appendChild(img);
+    }
     $('deckCount').textContent = deck.length;
-    $('moneyDisplay').textContent = `籌碼: $${playerMoney}`;
+    $('moneyDisplay').textContent = `$${playerMoney}`;
     
     const canRespond = initialDealt && playerTurn && !hasDrawnThisTurn && lastDiscardedTile;
     $('drawBtn').className = (initialDealt && playerTurn && !hasDrawnThisTurn) ? '' : 'disabled';
@@ -408,7 +419,6 @@ function addMeldUI(target, tiles) {
     tiles.forEach(t => { const img = document.createElement('img'); img.src = `images/${t}.png`; group.appendChild(img); });
     $(target).appendChild(group);
 }
-// 點擊空白處關閉吃牌視窗
 window.addEventListener('touchstart', (e) => { if (e.target.id === 'table') $('chiChoices').style.display = 'none'; });
 </script>
 </body>
