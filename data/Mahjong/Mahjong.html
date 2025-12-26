@@ -2,78 +2,91 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>台灣麻將 - 台數補完版 (平胡/三暗刻)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>台灣麻將 - 跨平台版 V0.05</title>
 <style>
-
-#backBtn{position:fixed;top:10px;right:10px;padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;z-index:9999;box-shadow:2px 2px 5px rgba(0,0,0,0.3);transition: all 0.1s ease;}
-#backBtn:active{transform: translateY(2px);box-shadow:1px 1px 3px rgba(0,0,0,0.3);}
-  #func1:disabled {
-    background: #ddd !important; /* 改變背景顏色 */
-    color: #888 !important;      /* 改變文字顏色 */
-    cursor: not-allowed !important;
-    box-shadow: none !important; /* 去掉立體陰影效果 */
-}
-
+    /* 基礎樣式與 PC/iPad 適應 */
     :root { --tile-w: 44px; --tile-h: 62px; }
-    body { font-family: "Microsoft JhengHei", sans-serif; display: flex; flex-direction: column; align-items: center; background: #2c3e50; margin: 0; padding: 20px; color: white; overflow: hidden; }
     
+    body { 
+        font-family: "Microsoft JhengHei", sans-serif; 
+        display: flex; flex-direction: column; align-items: center; 
+        background: #2c3e50; margin: 0; padding: 10px; color: white; 
+        overflow: hidden; touch-action: manipulation; /* 防止觸控延遲 */
+    }
+
     #table {
         width: 950px; height: 600px; background: #27ae60; border: 12px solid #8b5e3c; border-radius: 25px;
         position: relative; box-shadow: inset 0 0 50px rgba(0,0,0,0.5); padding: 10px; box-sizing: border-box;
+        transform-origin: top center; /* 方便縮放 */
     }
 
+    /* 版本與按鈕樣式 */
+    #backBtn { position:fixed; top:10px; right:10px; padding:8px 15px; font-size:14px; background:#fff; border:2px solid #ccc; border-radius:6px; cursor:pointer; color:#333; z-index:9999; }
+    
+    /* 牌組區域 */
     #dealerHand { display: flex; position: absolute; height: var(--tile-h); top: 15px; left: 50%; transform: translateX(calc(-50% + 30px)); width: 800px; justify-content: center; }
     #playerHand { display: flex; position: absolute; height: var(--tile-h); bottom: 15px; left: 50%; transform: translateX(-50%); width: 800px; justify-content: center; }
-    .hand img { width: var(--tile-w); height: var(--tile-h); position: absolute; cursor: pointer; transition: 0.2s; background: white; border: 1px solid #333; border-radius: 4px; }
-    .hand img:hover { transform: translateY(-10px); z-index: 100; }
+    
+    .hand img { 
+        width: var(--tile-w); height: var(--tile-h); position: absolute; 
+        cursor: pointer; transition: 0.2s; background: white; 
+        border: 1px solid #333; border-radius: 4px; 
+        -webkit-user-drag: none; /* 防止 iPad 誤觸拖曳 */
+    }
+    
+    /* PC 上的懸停效果，iPad 點擊也會有感 */
+    .hand img:active, .hand img:hover { transform: translateY(-15px); z-index: 100; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
 
     #discardArea { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); width: 650px; height: 200px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; padding: 5px; z-index: 10; }
-    .discardTile { width: 30px; height: 42px; border: 1px solid #333; background: white; }
+    .discardTile { width: 30px; height: 42px; border: 1px solid #333; background: white; pointer-events: none; }
 
     #playerMeldArea { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; width: 850px; }
     #dealerMeldArea { position: absolute; top: 85px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; width: 850px; flex-direction: row-reverse; }
     .meldGroup { display: flex; gap: 2px; background: rgba(0,0,0,0.2); padding: 3px; border-radius: 5px; }
     .meldGroup img { width: 35px; height: 50px; background: #eee; }
 
-    #diceContainer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; gap: 20px; z-index: 3000; }
-    .dice { width: 60px; height: 60px; filter: drop-shadow(2px 2px 5px rgba(0,0,0,0.5)); }
-
-    .messageLayer { position: absolute; color: #f1c40f; font-size: 30px; font-weight: bold; text-shadow: 2px 2px 5px black; opacity: 0; transition: 0.4s; z-index: 1000; width: 100%; text-align: center; pointer-events: none; }
-    #controls { margin-top: 15px; background: #ecf0f1; padding: 12px 30px; border-radius: 50px; color: #333; display: flex; align-items: center; gap: 15px; }
-    button { padding: 8px 18px; border-radius: 20px; border: none; background: #2980b9; color: white; font-weight: bold; cursor: pointer; }
-    button:hover:not(.disabled) { background: #3498db; }
+    /* 提示層 */
+    .messageLayer { position: absolute; color: #f1c40f; font-size: 28px; font-weight: bold; text-shadow: 2px 2px 5px black; opacity: 0; transition: 0.4s; z-index: 1000; width: 100%; text-align: center; pointer-events: none; }
+    
+    #controls { 
+        margin-top: 10px; background: #ecf0f1; padding: 15px 30px; border-radius: 50px; 
+        color: #333; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center;
+    }
+    
+    button { padding: 10px 20px; border-radius: 20px; border: none; background: #2980b9; color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
     button.disabled { background: #bdc3c7; cursor: not-allowed; opacity: 0.5; }
 
-    #chiChoices { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 20px; border-radius: 15px; display: none; gap: 20px; z-index: 2000; }
-    .chi-group { display: flex; gap: 5px; cursor: pointer; padding: 10px; border-radius: 8px; }
+    #chiChoices { 
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+        background: rgba(0,0,0,0.9); padding: 25px; border-radius: 20px; display: none; gap: 15px; z-index: 2000; border: 2px solid #f1c40f; 
+    }
+    .chi-group { display: flex; gap: 5px; cursor: pointer; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); }
 </style>
 </head>
 <body>
 
-<div id="top-right">
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:50px; right:20px; font-size:14px; color:#ffffff;">版本: V0.02</div>
-</div>
-
+<div id="version" style="position:fixed; top:50px; right:20px; font-size:12px;">V0.05</div>
 
 <div id="table">
     <div id="dealerHand" class="hand"></div>
     <div id="dealerMeldArea"></div>
     <div id="discardArea"></div>
-    <div id="tableMessage" class="messageLayer" style="top: 35%; font-size: 26px; white-space: pre-wrap;"></div>
+    <div id="tableMessage" class="messageLayer" style="top: 35%; white-space: pre-wrap;"></div>
     <div id="dealerMessage" class="messageLayer" style="top:120px"></div>
     <div id="playerMessage" class="messageLayer" style="bottom:120px"></div>
     <div id="playerMeldArea"></div>
     <div id="playerHand" class="hand"></div>
     <div id="chiChoices"></div>
-    <div id="diceContainer">
-        <img id="dice1" class="dice" src="images/1.png">
-        <img id="dice2" class="dice" src="images/1.png">
+    <div id="diceContainer" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); gap:20px; z-index:3000;">
+        <img id="dice1" style="width:70px;" src="images/1.png">
+        <img id="dice2" style="width:70px;" src="images/1.png">
     </div>
 </div>
 
 <div id="controls">
-    <span id="moneyDisplay" style="font-weight:bold;">籌碼: $10000</span>
+    <span id="moneyDisplay" style="font-weight:bold; font-size:18px;">籌碼: $10000</span>
     <button id="rollDiceBtn">開始遊戲</button>
     <button id="drawBtn" class="disabled">摸牌</button>
     <button id="chiBtn" class="disabled">吃</button>
@@ -84,8 +97,17 @@
 </div>
 
 <script>
+// 針對 iPad 螢幕縮放邏輯
+function adjustScale() {
+    const table = document.getElementById('table');
+    const scale = Math.min(window.innerWidth / 1000, window.innerHeight / 800);
+    if (scale < 1) table.style.transform = `scale(${scale})`;
+}
+window.addEventListener('resize', adjustScale);
+adjustScale();
 
-backBtn.onclick=()=>{window.history.back();};   //回上一頁
+const $ = id => document.getElementById(id);
+$('backBtn').onclick=()=>{window.history.back();};
 
 let deck=[], playerHand=[], dealerHand=[], playerMelds=[], dealerMelds=[];
 let playerMoney = 10000, initialDealt = false;
@@ -93,11 +115,9 @@ let playerTurn=true, hasDrawnThisTurn=false, lastDiscardedTile=null;
 let tempDraw=null, dealerTempDraw=null;
 let gameTurn = 0, isDealerFirst = true, dealerCount = 0;
 
-const $ = id => document.getElementById(id);
-
-function showMsg(layer, text, duration = 3500) {
+function showMsg(layer, text) {
     layer.textContent = text; layer.style.opacity = 1;
-    setTimeout(() => layer.style.opacity = 0, duration);
+    setTimeout(() => layer.style.opacity = 0, 3000);
 }
 
 function initDeck() {
@@ -130,12 +150,11 @@ function updateUI() {
         $('playerHand').appendChild(img);
     }
     if(dealerTempDraw) {
-        const img = document.createElement('img'); img.src = `images/back.png`; // 強制改為背面圖
-
+        const img = document.createElement('img'); img.src = `images/back.png`; 
         img.style.left = `-60px`; $('dealerHand').appendChild(img);
     }
     dealerHand.forEach((t, i) => {
-        const img = document.createElement('img'); img.src = `images/back.png`;  // 強制改為背面圖
+        const img = document.createElement('img'); img.src = `images/back.png`;
         img.style.left = `${i*gap}px`; $('dealerHand').appendChild(img);
     });
     $('deckCount').textContent = deck.length;
@@ -145,139 +164,125 @@ function updateUI() {
     $('drawBtn').className = (initialDealt && playerTurn && !hasDrawnThisTurn) ? '' : 'disabled';
     $('pengBtn').className = (canRespond && playerHand.filter(t=>t===lastDiscardedTile).length >= 2) ? '' : 'disabled';
     $('chiBtn').className = (canRespond && checkChiAvailable(lastDiscardedTile)) ? '' : 'disabled';
+    
+    let canGang = (canRespond && playerHand.filter(t=>t===lastDiscardedTile).length === 3) || 
+                  (hasDrawnThisTurn && checkSelfGangAvailable());
+    $('gangBtn').className = canGang ? '' : 'disabled';
     $('huBtn').className = (initialDealt && playerTurn) ? '' : 'disabled';
     $('rollDiceBtn').className = initialDealt ? 'disabled' : '';
 }
 
-// 結算與算台
+function checkSelfGangAvailable() {
+    let combined = [...playerHand]; if(tempDraw) combined.push(tempDraw);
+    let counts = {}; combined.forEach(t => counts[t] = (counts[t]||0)+1);
+    for(let t in counts) if(counts[t] === 4) return true;
+    if(tempDraw && playerMelds.some(m => m.type === 'pong' && m.tiles[0] === tempDraw)) return true;
+    return false;
+}
+
+$('gangBtn').onclick = () => {
+    if($('gangBtn').classList.contains('disabled')) return;
+    let gangTile = "";
+    if (lastDiscardedTile && !hasDrawnThisTurn) {
+        gangTile = lastDiscardedTile;
+        playerHand = playerHand.filter(t => t !== gangTile);
+        playerMelds.push({type:'gang', tiles:[gangTile,gangTile,gangTile,gangTile]});
+        addMeldUI('playerMeldArea', [gangTile,gangTile,gangTile,gangTile]);
+        lastDiscardedTile = null;
+    } else {
+        let combined = [...playerHand]; if(tempDraw) combined.push(tempDraw);
+        let counts = {}; combined.forEach(t => counts[t] = (counts[t]||0)+1);
+        for(let t in counts) {
+            if(counts[t] === 4) {
+                gangTile = t; playerHand = combined.filter(tile => tile !== gangTile);
+                tempDraw = null;
+                playerMelds.push({type:'angang', tiles:[gangTile,gangTile,gangTile,gangTile]});
+                addMeldUI('playerMeldArea', [gangTile,gangTile,gangTile,gangTile]);
+                break;
+            }
+        }
+        if(!gangTile && tempDraw) {
+            let meldIdx = playerMelds.findIndex(m => m.type === 'pong' && m.tiles[0] === tempDraw);
+            if(meldIdx !== -1) {
+                gangTile = tempDraw;
+                playerMelds[meldIdx] = {type:'gang', tiles:[gangTile,gangTile,gangTile,gangTile]};
+                tempDraw = null;
+                $('playerMeldArea').innerHTML = '';
+                playerMelds.forEach(m => addMeldUI('playerMeldArea', m.tiles));
+            }
+        }
+    }
+    if(gangTile) {
+        showMsg($('playerMessage'), "槓！");
+        setTimeout(() => { tempDraw = deck.pop(); hasDrawnThisTurn = true; updateUI(); }, 500);
+    }
+};
+
 function settleGame(winner, isSelfDraw) {
     let rawHand = (winner === 'player') ? [...playerHand] : [...dealerHand];
     let melds = (winner === 'player') ? playerMelds : dealerMelds;
     let lastTile = isSelfDraw ? (winner === 'player' ? tempDraw : dealerTempDraw) : lastDiscardedTile;
-    
-    if (isSelfDraw) rawHand.push(lastTile); else rawHand.push(lastTile);
-
+    rawHand.push(lastTile);
     let result = calculateTai(winner, rawHand, melds, isSelfDraw, lastTile);
     let totalMoney = 500 + (result.tai * 200);
-
-    if (winner === 'player') {
-        playerMoney += totalMoney;
-        if (isDealerFirst) { dealerCount++; } else { dealerCount = 0; }
-    } else {
-        playerMoney -= totalMoney;
-        if (isDealerFirst) { dealerCount++; } else { dealerCount = 0; }
-    }
-
-    let msg = `${winner === 'player' ? '玩家' : '莊家'} ${isSelfDraw ? '自摸' : '榮胡'}！\n`;
-    msg += `台數：${result.tai} 台 (${result.details.join(', ') || '無台'})\n`;
-    msg += `總計金額：$${totalMoney}`;
-    
-    showMsg($('tableMessage'), msg, 5000);
-    initialDealt = false;
-    updateUI();
+    if (winner === 'player') { playerMoney += totalMoney; if (isDealerFirst) dealerCount++; else dealerCount = 0; }
+    else { playerMoney -= totalMoney; if (isDealerFirst) dealerCount++; else dealerCount = 0; }
+    showMsg($('tableMessage'), `${winner==='player'?'玩家':'莊家'} ${isSelfDraw?'自摸':'胡牌'}！\n${result.tai} 台 (${result.details.join(', ')})\n$${totalMoney}`);
+    initialDealt = false; updateUI();
 }
 
 function calculateTai(winner, fullHand, melds, isSelfDraw, lastTile) {
-    let tai = 0;
-    let details = [];
+    let tai = 0, details = [];
     let counts = {}; fullHand.forEach(t => counts[t] = (counts[t]||0)+1);
-    
-    // 莊家系列
     if ((winner === 'player' && !isDealerFirst) || (winner === 'dealer' && isDealerFirst)) {
         tai += 1; details.push("莊家");
-        if (dealerCount > 0) { tai += (dealerCount * 2); details.push(`連莊${dealerCount}且拉莊`); }
+        if (dealerCount > 0) { tai += (dealerCount * 2); details.push(`連莊${dealerCount}`); }
     }
-    
-    // 基本自摸/門清
     if (isSelfDraw) { tai += 1; details.push("自摸"); }
-    if (melds.length === 0) { 
-        tai += 1; details.push("門清"); 
-        if(isSelfDraw) { tai += 1; details.push("不求人"); }
-    }
-
-    // 三元牌
+    if (melds.length === 0) { tai += 1; details.push("門清"); if(isSelfDraw) { tai += 1; details.push("不求人"); } }
     ['中', '發', '白'].forEach(h => { if (counts[h] >= 3) { tai += 1; details.push(h); } });
-
-    // 三暗刻 / 四暗刻 / 五暗刻 判斷
-    // 計算手牌中的刻子 (排除掉已露出的碰牌)
     let internalTriplets = 0;
-    let tempCounts = {...counts};
-    // 簡單判定法：手牌中只要有 3 張一樣的就是暗刻（若是榮胡最後一張，該組算明刻不算暗刻）
-    for(let t in tempCounts) {
-        if(tempCounts[t] >= 3) {
-            if(!isSelfDraw && t === lastTile) continue; // 榮胡的那一組算明刻
-            internalTriplets++;
-        }
-    }
+    for(let t in counts) { if(counts[t] >= 3) { if(!isSelfDraw && t === lastTile) continue; internalTriplets++; } }
     if(internalTriplets === 3) { tai += 2; details.push("三暗刻"); }
     else if(internalTriplets === 4) { tai += 5; details.push("四暗刻"); }
     else if(internalTriplets === 5) { tai += 8; details.push("五暗刻"); }
-
-    // 碰碰胡
-    if (Object.values(counts).filter(v => v >= 3).length + melds.filter(m=>m.type==='pong').length === 5) {
-        tai += 4; details.push("碰碰胡");
-    }
-
-    // 平胡判斷 (無字、無刻、有吃牌、非自摸、兩面聽)
+    if (Object.values(counts).filter(v => v >= 3).length + melds.filter(m=>m.type!=='chi').length === 5) { tai += 4; details.push("碰碰胡"); }
     let hasHonors = fullHand.some(t => !t.match(/\d/));
-    let hasTriplets = Object.values(counts).some(v => v >= 3) || melds.some(m => m.type === 'pong');
-    if (!hasHonors && !hasTriplets && !isSelfDraw && melds.length > 0) {
-        // 檢查是否為兩面聽 (簡化：只要最後一張是數牌且非孤張即可)
-        tai += 2; details.push("平胡");
-    }
-
-    // 混一色/清一色
-    let suits = new Set();
-    fullHand.forEach(t => { if(t.match(/\d/)) suits.add(t.replace(/\d/,'')); });
+    let hasTriplets = Object.values(counts).some(v => v >= 3) || melds.some(m => m.type !== 'chi');
+    if (!hasHonors && !hasTriplets && !isSelfDraw && melds.length > 0) { tai += 2; details.push("平胡"); }
+    let suits = new Set(); fullHand.forEach(t => { if(t.match(/\d/)) suits.add(t.replace(/\d/,'')); });
     if (suits.size === 1 && !hasHonors) { tai += 8; details.push("清一色"); }
     else if (suits.size === 1 && hasHonors) { tai += 4; details.push("混一色"); }
-
-    // 天地胡
-    if (gameTurn === 0) {
-        if (winner === 'dealer' && isDealerFirst && isSelfDraw) { tai = 16; details = ["天胡"]; }
-        else if (winner === 'player' && !isDealerFirst && isSelfDraw) { tai = 16; details = ["地胡"]; }
-    }
-
     return { tai, details };
-}
-
-// 骰子邏輯 (保留原功能)
-function playDiceAnimation(callback) {
-    const container = $('diceContainer'); container.style.display = 'flex';
-    let count = 0;
-    const interval = setInterval(() => {
-        const r1 = Math.floor(Math.random() * 6) + 1;
-        const r2 = Math.floor(Math.random() * 6) + 1;
-        $('dice1').src = `images/${r1}.png`; $('dice2').src = `images/${r2}.png`;
-        count++;
-        if (count > 10) { clearInterval(interval); setTimeout(() => { container.style.display = 'none'; callback(r1 + r2); }, 800); }
-    }, 100);
 }
 
 $('rollDiceBtn').onclick = () => {
     if(initialDealt) return;
-    initDeck();
-    playerHand=[]; dealerHand=[]; playerMelds=[]; dealerMelds=[]; gameTurn = 0;
+    initDeck(); playerHand=[]; dealerHand=[]; playerMelds=[]; dealerMelds=[]; gameTurn = 0;
     $('discardArea').innerHTML=''; $('playerMeldArea').innerHTML=''; $('dealerMeldArea').innerHTML='';
-    playDiceAnimation((totalPoints) => {
-        isDealerFirst = (totalPoints % 2 !== 0);
-        for(let i=0; i<16; i++) { playerHand.push(deck.pop()); dealerHand.push(deck.pop()); }
-        playerHand = sortHand(playerHand); dealerHand = sortHand(dealerHand);
-        initialDealt = true;
-        if (!isDealerFirst) {
-            playerTurn = true; hasDrawnThisTurn = false; showMsg($('playerMessage'), "玩家先摸牌");
-        } else {
-            playerTurn = false; hasDrawnThisTurn = false; showMsg($('dealerMessage'), "莊家先摸牌");
-            setTimeout(dealerAction, 1000);
+    $('diceContainer').style.display = 'flex';
+    let count = 0;
+    const interval = setInterval(() => {
+        const r1 = Math.floor(Math.random()*6)+1, r2 = Math.floor(Math.random()*6)+1;
+        $('dice1').src = `images/${r1}.png`; $('dice2').src = `images/${r2}.png`;
+        if (++count > 10) {
+            clearInterval(interval); 
+            setTimeout(() => { 
+                $('diceContainer').style.display = 'none';
+                isDealerFirst = ((r1+r2)%2 !== 0);
+                for(let i=0; i<16; i++) { playerHand.push(deck.pop()); dealerHand.push(deck.pop()); }
+                playerHand = sortHand(playerHand); dealerHand = sortHand(dealerHand);
+                initialDealt = true; playerTurn = !isDealerFirst;
+                if(isDealerFirst) setTimeout(dealerAction, 1000);
+                updateUI();
+            }, 800);
         }
-        updateUI();
-    });
+    }, 100);
 };
 
 $('drawBtn').onclick = () => {
     if($('drawBtn').classList.contains('disabled')) return;
-    tempDraw = deck.pop(); hasDrawnThisTurn = true; lastDiscardedTile = null;
-    updateUI();
+    tempDraw = deck.pop(); hasDrawnThisTurn = true; lastDiscardedTile = null; updateUI();
 };
 
 function playTile(index) {
@@ -287,35 +292,58 @@ function playTile(index) {
     tempDraw = null; playerHand = sortHand(playerHand);
     const img = document.createElement('img'); img.src = `images/${t}.png`; img.className = 'discardTile';
     $('discardArea').appendChild(img);
-    lastDiscardedTile = t; playerTurn = false; hasDrawnThisTurn = false; gameTurn++;
-    updateUI();
-    setTimeout(() => dealerResponse(t), 800);
+    lastDiscardedTile = t; playerTurn = false; hasDrawnThisTurn = false;
+    updateUI(); setTimeout(() => dealerResponse(t), 800);
 }
 
-// 玩家按鈕事件
 $('pengBtn').onclick = () => {
     const t = lastDiscardedTile;
-    playerHand.splice(playerHand.indexOf(t), 1);
-    playerHand.splice(playerHand.indexOf(t), 1);
-    playerMelds.push({type:'pong', tiles:[t,t,t]});
-    addMeldUI('playerMeldArea', [t,t,t]);
+    playerHand.splice(playerHand.indexOf(t), 1); playerHand.splice(playerHand.indexOf(t), 1);
+    playerMelds.push({type:'pong', tiles:[t,t,t]}); addMeldUI('playerMeldArea', [t,t,t]);
     lastDiscardedTile = null; playerTurn = true; hasDrawnThisTurn = true; updateUI();
 };
 
-$('huBtn').onclick = () => {
-    let tiles = [...playerHand];
-    let isSelfDraw = hasDrawnThisTurn;
-    if (isSelfDraw) tiles.push(tempDraw); else tiles.push(lastDiscardedTile);
-    if (checkWin(tiles)) {
-        settleGame('player', isSelfDraw);
-    } else showMsg($('playerMessage'), "沒胡喔");
+$('chiBtn').onclick = () => {
+    const t = lastDiscardedTile; const m = t.match(/^(\d)([萬筒條])$/); if(!m) return;
+    const n = parseInt(m[1]), s = m[2];
+    const patterns = [[n-2, n-1], [n-1, n+1], [n+1, n+2]];
+    $('chiChoices').innerHTML = '';
+    patterns.forEach(p => {
+        const p1 = `${p[0]}${s}`, p2 = `${p[1]}${s}`;
+        if(playerHand.includes(p1) && playerHand.includes(p2)) {
+            const div = document.createElement('div'); div.className = 'chi-group';
+            [p1, t, p2].sort().forEach(src => {
+                const img = document.createElement('img'); img.src = `images/${src}.png`;
+                img.style.width = '44px'; div.appendChild(img);
+            });
+            div.onclick = () => {
+                playerHand.splice(playerHand.indexOf(p1), 1); playerHand.splice(playerHand.indexOf(p2), 1);
+                const combined = sortHand([p1, t, p2]);
+                playerMelds.push({type:'chi', tiles: combined}); addMeldUI('playerMeldArea', combined);
+                lastDiscardedTile = null; playerTurn = true; hasDrawnThisTurn = true;
+                $('chiChoices').style.display = 'none'; updateUI();
+            };
+            $('chiChoices').appendChild(div);
+        }
+    });
+    $('chiChoices').style.display = 'flex';
 };
 
-// 莊家 AI 邏輯 (包含優先打字牌與 1,9 邏輯)
+$('huBtn').onclick = () => {
+    let tiles = [...playerHand]; if (hasDrawnThisTurn) tiles.push(tempDraw); else tiles.push(lastDiscardedTile);
+    if (checkWin(tiles)) settleGame('player', hasDrawnThisTurn);
+    else showMsg($('playerMessage'), "沒胡喔");
+};
+
 function dealerResponse(tile) {
     if (checkWin([...dealerHand, tile])) { settleGame('dealer', false); return; }
     let count = dealerHand.filter(x => x === tile).length;
-    if (count >= 2) {
+    if (count >= 3) {
+        dealerHand = dealerHand.filter(x => x !== tile);
+        dealerMelds.push({type:'gang', tiles:[tile,tile,tile,tile]});
+        addMeldUI('dealerMeldArea', [tile,tile,tile,tile]);
+        dealerAction(); return;
+    } else if (count >= 2) {
         dealerHand = dealerHand.filter(x => x !== tile);
         dealerMelds.push({type:'pong', tiles:[tile,tile,tile]});
         addMeldUI('dealerMeldArea', [tile,tile,tile]);
@@ -329,52 +357,40 @@ function dealerAction() {
     dealerTempDraw = deck.pop(); updateUI();
     setTimeout(() => {
         if (checkWin([...dealerHand, dealerTempDraw])) { settleGame('dealer', true); return; }
-        dealerHand.push(dealerTempDraw); dealerTempDraw = null;
-        dealerHand = sortHand(dealerHand);
-        dealerDiscard();
+        let counts = {}; [...dealerHand, dealerTempDraw].forEach(t => counts[t] = (counts[t]||0)+1);
+        for(let t in counts) if(counts[t] === 4) {
+            dealerHand = [...dealerHand, dealerTempDraw].filter(tile => tile !== t);
+            dealerTempDraw = null; dealerMelds.push({type:'angang', tiles:[t,t,t,t]});
+            addMeldUI('dealerMeldArea', [t,t,t,t]); dealerAction(); return;
+        }
+        dealerHand.push(dealerTempDraw); dealerTempDraw = null; dealerHand = sortHand(dealerHand); dealerDiscard();
     }, 1000);
 }
 
 function dealerDiscard() {
-    const honors = ['東', '南', '西', '北', '中', '發', '白'];
-    let lonerHonors = dealerHand.filter(t => honors.includes(t) && dealerHand.filter(x => x === t).length === 1);
-    let lonerTerminals = dealerHand.filter(t => { let m = t.match(/^([19])([萬筒條])$/); return m && dealerHand.filter(x => x === t).length === 1; });
-    
-    let discardIdx;
-    if (lonerHonors.length > 0) discardIdx = dealerHand.indexOf(lonerHonors[Math.floor(Math.random()*lonerHonors.length)]);
-    else if (lonerTerminals.length > 0) discardIdx = dealerHand.indexOf(lonerTerminals[Math.floor(Math.random()*lonerTerminals.length)]);
-    else discardIdx = Math.floor(Math.random() * dealerHand.length);
-
+    let discardIdx = Math.floor(Math.random() * dealerHand.length);
     const t = dealerHand.splice(discardIdx, 1)[0];
     const img = document.createElement('img'); img.src = `images/${t}.png`; img.className = 'discardTile';
     $('discardArea').appendChild(img);
-    lastDiscardedTile = t; playerTurn = true; hasDrawnThisTurn = false;
-    showMsg($('dealerMessage'), `莊家打出 ${t}`); updateUI();
+    lastDiscardedTile = t; playerTurn = true; updateUI();
 }
 
-// 判斷胡牌邏輯
 function checkWin(hand) {
     if (hand.length % 3 !== 2) return false;
     let counts = {}; hand.forEach(t => counts[t] = (counts[t]||0)+1);
-    for (let t in counts) {
-        if (counts[t] >= 2) {
-            counts[t] -= 2; if (canExhaust(counts)) return true; counts[t] += 2;
-        }
-    }
+    for (let t in counts) if (counts[t] >= 2) { counts[t] -= 2; if (canExhaust(counts)) return true; counts[t] += 2; }
     return false;
 }
 
 function canExhaust(counts) {
-    let tiles = Object.keys(counts).filter(t => counts[t] > 0).sort();
-    if (tiles.length === 0) return true;
+    let tiles = Object.keys(counts).filter(t => counts[t] > 0).sort(); if (tiles.length === 0) return true;
     let f = tiles[0];
     if (counts[f] >= 3) { counts[f] -= 3; if (canExhaust(counts)) return true; counts[f] += 3; }
     let m = f.match(/^(\d)([萬筒條])$/);
     if (m) {
         let n=parseInt(m[1]), s=m[2], t2=`${n+1}${s}`, t3=`${n+2}${s}`;
         if (n<=7 && counts[t2]>0 && counts[t3]>0) {
-            counts[f]--; counts[t2]--; counts[t3]--;
-            if (canExhaust(counts)) return true;
+            counts[f]--; counts[t2]--; counts[t3]--; if (canExhaust(counts)) return true;
             counts[f]++; counts[t2]++; counts[t3]++;
         }
     }
@@ -392,6 +408,8 @@ function addMeldUI(target, tiles) {
     tiles.forEach(t => { const img = document.createElement('img'); img.src = `images/${t}.png`; group.appendChild(img); });
     $(target).appendChild(group);
 }
+// 點擊空白處關閉吃牌視窗
+window.addEventListener('touchstart', (e) => { if (e.target.id === 'table') $('chiChoices').style.display = 'none'; });
 </script>
 </body>
 </html>
