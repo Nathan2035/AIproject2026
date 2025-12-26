@@ -71,15 +71,34 @@
     button.disabled { background: #bdc3c7; cursor: not-allowed; opacity: 0.5; }
     button:active:not(.disabled) { background: #1a5276; transform: scale(0.95); }
 
-    #chiChoices { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 20px; border-radius: 20px; display: none; gap: 15px; z-index: 2000; border: 2px solid #ffea00; }
-    .chi-group { display: flex; gap: 5px; cursor: pointer; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); }
+    #chiChoices { 
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+        background: rgba(0, 0, 0, 0.2); 
+        padding: 15px; border-radius: 20px; 
+        display: none; gap: 10px; z-index: 2000; 
+        border: 1px solid rgba(255, 255, 255, 0.1); 
+        backdrop-filter: blur(15px); 
+        -webkit-backdrop-filter: blur(15px);
+    }
+    
+    .chi-group { 
+        display: flex; gap: 6px; cursor: pointer; padding: 10px; border-radius: 12px; 
+        background: rgba(255, 255, 255, 0.05); 
+        border: 1px solid rgba(255, 255, 255, 0.15); 
+        transition: 0.2s;
+    }
+    .chi-group:hover { 
+        background: rgba(255, 255, 255, 0.2); 
+        border-color: rgba(255, 255, 255, 0.6); 
+        transform: translateY(-3px);
+    }
 </style>
 </head>
 <body>
 
 <div id="top-right">
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:50px; right:20px; font-size:14px; color:#ffffff;">版本: V0.07</div>
+<div id="version" style="position:fixed; top:50px; right:20px; font-size:14px; color:#ffffff;">版本: V0.09.5-8RoundSystem</div>
 </div>
 <br>
 <div id="game-container">
@@ -94,8 +113,8 @@
         <div id="playerHand" class="hand"></div>
         <div id="chiChoices"></div>
         <div id="diceContainer" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); gap:20px; z-index:3000;">
-            <img id="dice1" style="width:70px;" src="images/1.png">
-            <img id="dice2" style="width:70px;" src="images/1.png">
+            <img id="dice1" style="width:50px;" src="images/1.png">
+            <img id="dice2" style="width:50px;" src="images/1.png">
         </div>
     </div>
 
@@ -107,12 +126,11 @@
         <button id="pengBtn" class="disabled">碰</button>
         <button id="gangBtn" class="disabled">槓</button>
         <button id="huBtn" class="disabled">胡牌</button>
-        <span style="font-size: 14px; margin-left:10px;">牌堆:<b id="deckCount">0</b></span>
+        <span style="font-size: 14px; margin-left:10px;">牌堆:<b id="deckCount" style="display:inline-block; width:35px; text-align:center;">0</b></span>
     </div>
 </div>
 
 <script>
-// Web Audio API 初始化
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioCtx = new AudioContext();
 const soundBuffers = {};
@@ -177,7 +195,8 @@ let deck=[], playerHand=[], dealerHand=[], playerMelds=[], dealerMelds=[];
 let playerMoney = 10000, initialDealt = false, isDealing = false;
 let playerTurn=true, hasDrawnThisTurn=false, lastDiscardedTile=null;
 let tempDraw=null, dealerTempDraw=null;
-let gameTurn = 0, isDealerFirst = true, dealerCount = 0;
+let isDealerFirst = true, dealerCount = 0;
+let totalGames = 0; // 新增：記錄總局數
 
 function showMsg(layer, text, autoHide = true) {
     layer.textContent = text; layer.style.opacity = 1;
@@ -218,26 +237,27 @@ function updateUI() {
         $('playerHand').appendChild(img);
     }
     dealerHand.forEach((t, i) => {
-        const img = document.createElement('img'); img.src = `images/back.png`;
-        img.style.left = `${i*gap}px`; $('dealerHand').appendChild(img);
+        const img = document.createElement('img'); 
+        img.src = `images/back.png`;     //${t}.png
+        img.style.left = `${i*gap}px`; 
+        $('dealerHand').appendChild(img);
     });
     if(dealerTempDraw) {
-        const img = document.createElement('img'); img.src = `images/back.png`; 
-        img.style.left = `-60px`; $('dealerHand').appendChild(img);
+        const img = document.createElement('img'); 
+        img.src = `images/back.png`;   //${dealerTempDraw}.png
+        img.style.left = `-60px`; 
+        $('dealerHand').appendChild(img);
     }
     $('deckCount').textContent = deck.length;
     $('moneyDisplay').textContent = `籌碼: $${playerMoney}`;
-    
     const canRespond = initialDealt && playerTurn && !hasDrawnThisTurn && lastDiscardedTile;
     $('drawBtn').className = (initialDealt && playerTurn && !hasDrawnThisTurn) ? '' : 'disabled';
     $('pengBtn').className = (canRespond && playerHand.filter(t=>t===lastDiscardedTile).length >= 2) ? '' : 'disabled';
     $('chiBtn').className = (canRespond && checkChiAvailable(lastDiscardedTile)) ? '' : 'disabled';
-    
     let canGang = (canRespond && playerHand.filter(t=>t===lastDiscardedTile).length === 3) || 
                   (hasDrawnThisTurn && checkSelfGangAvailable());
     $('gangBtn').className = canGang ? '' : 'disabled';
     $('huBtn').className = (initialDealt && playerTurn) ? '' : 'disabled';
-    
     $('rollDiceBtn').className = (initialDealt || isDealing) ? 'disabled' : '';
 }
 
@@ -297,75 +317,72 @@ function settleGame(winner, isSelfDraw) {
     let rawHand = (winner === 'player') ? [...playerHand] : [...dealerHand];
     let melds = (winner === 'player') ? playerMelds : dealerMelds;
     let lastTile = isSelfDraw ? (winner === 'player' ? tempDraw : dealerTempDraw) : lastDiscardedTile;
-    rawHand.push(lastTile);
-    let result = calculateTai(winner, rawHand, melds, isSelfDraw, lastTile);
+    let fullCheckHand = [...rawHand, lastTile];
+    melds.forEach(m => fullCheckHand = fullCheckHand.concat(m.tiles));
+    let result = calculateTai(winner, rawHand, melds, isSelfDraw, lastTile, fullCheckHand);
     let totalMoney = 500 + (result.tai * 200);
     
     if (winner === 'player') { 
         playerMoney += totalMoney; 
         if (!isDealerFirst) dealerCount++; else dealerCount = 0; 
         playSfx('win'); 
-    }
-    else { 
+        isDealerFirst = false; // 玩家胡牌，下一場玩家當莊 (isDealerFirst 為 false 代表玩家是莊)
+    } else { 
         playerMoney -= totalMoney; 
         if (isDealerFirst) dealerCount++; else dealerCount = 0; 
+        isDealerFirst = true; // 電腦胡牌，下一場電腦當莊 (isDealerFirst 為 true 代表電腦是莊)
     }
     
+    totalGames++; // 局數增加
     showMsg($('tableMessage'), `${winner==='player'?'玩家':'莊家'} ${isSelfDraw?'自摸':'胡牌'}！\n${result.tai} 台 (${result.details.join(', ')})\n$${totalMoney}`, false);
-    
-    initialDealt = false; isDealing = false;
-    tempDraw = null; 
-    dealerTempDraw = null;
-    lastDiscardedTile = null;
+    initialDealt = false; isDealing = false; tempDraw = null; dealerTempDraw = null; lastDiscardedTile = null;
     updateUI();
 }
 
-function calculateTai(winner, fullHand, melds, isSelfDraw, lastTile) {
+function calculateTai(winner, rawHand, melds, isSelfDraw, lastTile, fullCheckHand) {
     let tai = 0, details = [];
-    let counts = {}; fullHand.forEach(t => counts[t] = (counts[t]||0)+1);
-    
+    let counts = {}; 
+    let allTilesInHand = [...rawHand, lastTile];
+    allTilesInHand.forEach(t => counts[t] = (counts[t]||0)+1);
     if ((winner === 'player' && !isDealerFirst) || (winner === 'dealer' && isDealerFirst)) {
         tai += 1; details.push("莊家");
         if (dealerCount > 0) { tai += (dealerCount * 2); details.push(`連莊${dealerCount}`); }
     }
     if (isSelfDraw) { tai += 1; details.push("自摸"); }
     if (melds.length === 0) { tai += 1; details.push("門清"); if(isSelfDraw) { tai += 1; details.push("不求人"); } }
-    ['中', '發', '白'].forEach(h => { if (counts[h] >= 3) { tai += 1; details.push(h); } });
-    
+    ['中', '發', '白'].forEach(h => { 
+        let totalCount = fullCheckHand.filter(t => t === h).length;
+        if (totalCount >= 3) { tai += 1; details.push(h); } 
+    });
     let internalTriplets = 0;
     for(let t in counts) { if(counts[t] >= 3) { if(!isSelfDraw && t === lastTile) continue; internalTriplets++; } }
+    melds.forEach(m => { if(m.type === 'angang') internalTriplets++; });
     if(internalTriplets === 3) { tai += 2; details.push("三暗刻"); }
     else if(internalTriplets === 4) { tai += 5; details.push("四暗刻"); }
     else if(internalTriplets === 5) { tai += 8; details.push("五暗刻"); }
-    
     if (Object.values(counts).filter(v => v >= 3).length + melds.filter(m=>m.type!=='chi').length === 5) { tai += 4; details.push("碰碰胡"); }
-    
-    let suits = new Set(); 
-    fullHand.forEach(t => { 
-        let m = t.match(/萬|筒|條/);
-        if(m) suits.add(m[0]); 
-    });
-    if (suits.size === 1) {
-        if (!fullHand.some(t => !t.match(/\d/))) { tai += 8; details.push("清一色"); }
+    let hasWan = fullCheckHand.some(t => t.includes('萬'));
+    let hasTong = fullCheckHand.some(t => t.includes('筒'));
+    let hasTiao = fullCheckHand.some(t => t.includes('條'));
+    let hasZi = fullCheckHand.some(t => !t.match(/\d/)); 
+    let suitCount = [hasWan, hasTong, hasTiao].filter(Boolean).length;
+    if (suitCount === 1) {
+        if (!hasZi) { tai += 8; details.push("清一色"); }
         else { tai += 4; details.push("混一色"); }
     }
-    
     return { tai, details };
 }
 
 $('rollDiceBtn').onclick = () => {
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    
     if(initialDealt || isDealing) return;
     isDealing = true; 
     $('rollDiceBtn').className = 'disabled'; 
-
     $('tableMessage').style.opacity = 0;
     $('playerHand').innerHTML = ''; $('dealerHand').innerHTML = ''; $('discardArea').innerHTML = '';
     $('playerMeldArea').innerHTML = ''; $('dealerMeldArea').innerHTML = '';
-    
     initDeck(); 
-    playerHand=[]; dealerHand=[]; playerMelds=[]; dealerMelds=[]; gameTurn = 0;
+    playerHand=[]; dealerHand=[]; playerMelds=[]; dealerMelds=[];
     tempDraw = null; dealerTempDraw = null;
 
     const startDeal = () => {
@@ -381,7 +398,8 @@ $('rollDiceBtn').onclick = () => {
         updateUI();
     };
 
-    if (!isDealerFirst && dealerCount > 0) {
+    // 判斷是否需要擲骰子 (第一場 或 過了 8 圈 [16局])
+    if (totalGames > 0 && totalGames % 16 !== 0) {
         startDeal();
     } else {
         showMsg($('tableMessage'), "新局開始，擲骰中...");
@@ -464,19 +482,58 @@ $('huBtn').onclick = () => {
 };
 
 function dealerResponse(tile) {
+    // 1. 先檢查能不能胡，胡牌優先級最高
     if (checkWin([...dealerHand, tile])) { settleGame('dealer', false); return; }
-    let count = dealerHand.filter(x => x === tile).length;
-    if (count >= 3) {
-        dealerHand = dealerHand.filter(x => x !== tile);
-        dealerMelds.push({type:'gang', tiles:[tile,tile,tile,tile]});
-        addMeldUI('dealerMeldArea', [tile,tile,tile,tile]);
-        dealerAction(); return;
-    } else if (count >= 2) {
-        dealerHand = dealerHand.filter(x => x !== tile);
-        dealerMelds.push({type:'pong', tiles:[tile,tile,tile]});
-        addMeldUI('dealerMeldArea', [tile,tile,tile]);
-        dealerDiscard(); return;
+
+    // 2. 模擬碰牌後的狀況
+    let canPeng = dealerHand.filter(x => x === tile).length >= 2;
+    if (canPeng) {
+        let tempHandAfterPeng = [...dealerHand];
+        // 移除兩張用來碰的牌
+        tempHandAfterPeng.splice(tempHandAfterPeng.indexOf(tile), 1);
+        tempHandAfterPeng.splice(tempHandAfterPeng.indexOf(tile), 1);
+
+        // --- 智商檢查：判斷是否該碰 ---
+        // 如果原本已經聽牌，但碰完後打出一張卻不能聽牌了，就「不碰」
+        let currentlyTenpai = checkIfTenpai(dealerHand);
+        let willBeTenpai = false;
+        
+        // 模擬碰完後，打掉手裡任何一張牌是否能維持聽牌
+        for (let i = 0; i < tempHandAfterPeng.length; i++) {
+            let testHand = [...tempHandAfterPeng];
+            testHand.splice(i, 1);
+            if (checkIfTenpai(testHand)) {
+                willBeTenpai = true;
+                break;
+            }
+        }
+
+        // 只有在「原本沒聽牌」或者「碰了還能維持聽牌」的情況下才碰
+        if (!currentlyTenpai || willBeTenpai) {
+            dealerHand = tempHandAfterPeng;
+            dealerMelds.push({type:'pong', tiles:[tile,tile,tile]});
+            addMeldUI('dealerMeldArea', [tile,tile,tile]);
+            showMsg($('dealerMessage'), "碰！");
+            dealerDiscard(); 
+            return;
+        }
     }
+
+    // 3. 槓牌邏輯（同樣受聽牌保護檢查）
+    let count = dealerHand.filter(x => x === tile).length;
+    if (count === 3) {
+        let tempHandAfterGang = dealerHand.filter(x => x !== tile);
+        if (!checkIfTenpai(dealerHand) || checkIfTenpai(tempHandAfterGang)) {
+            dealerHand = tempHandAfterGang;
+            dealerMelds.push({type:'gang', tiles:[tile,tile,tile,tile]});
+            addMeldUI('dealerMeldArea', [tile,tile,tile,tile]);
+            showMsg($('dealerMessage'), "槓！");
+            dealerAction(); 
+            return;
+        }
+    }
+
+    // 沒胡沒碰沒槓，正常摸牌
     dealerAction();
 }
 
@@ -498,14 +555,78 @@ function dealerAction() {
     }, 1000);
 }
 
+
+    // --- 優化電腦邏輯：檢查是否聽牌 ---
 function dealerDiscard() {
-    let discardIdx = Math.floor(Math.random() * dealerHand.length);
-    const t = dealerHand.splice(discardIdx, 1)[0];
-    const img = document.createElement('img'); img.src = `images/${t}.png`; img.className = 'discardTile';
+    let hand = [...dealerHand];
+    let bestDiscardIdx = -1;
+    let isCurrentlyTenpai = false;
+
+
+    // 遍歷手牌，看看打掉哪一張後會進入「聽牌」狀態
+    for (let i = 0; i < hand.length; i++) {
+        let testHand = [...hand];
+        testHand.splice(i, 1);
+        // 模擬：如果隨便加入一張牌能胡，就代表打掉 i 後是聽牌
+        if (checkIfTenpai(testHand)) {
+            bestDiscardIdx = i;
+            isCurrentlyTenpai = true;
+            break; 
+        }
+    }
+
+    let t;
+    if (isCurrentlyTenpai) {
+        // 如果能聽牌，就打掉那張讓自己聽牌的牌
+        t = dealerHand.splice(bestDiscardIdx, 1)[0];
+    } else {
+        // 如果沒聽牌，才走原本的評分邏輯
+        let scores = hand.map((tile, index) => {
+            let score = 0;
+            let m = tile.match(/^(\d)([萬筒條])$/);
+            if (!m) {
+                let count = hand.filter(t => t === tile).length;
+                if (count >= 3) score = 100;
+                else if (count === 2) score = 40;
+                else score = 0;
+            } else {
+                let n = parseInt(m[1]), s = m[2];
+                let count = hand.filter(t => t === tile).length;
+                if (count >= 3) score += 80;
+                if (count === 2) score += 30;
+                if (hand.includes(`${n-1}${s}`) || hand.includes(`${n+1}${s}`)) score += 20;
+                if (hand.includes(`${n-2}${s}`) || hand.includes(`${n+2}${s}`)) score += 10;
+                if (n >= 3 && n <= 7) score += 5;
+            }
+            return { index, score: score + Math.random() * 5 };
+        });
+        scores.sort((a, b) => a.score - b.score);
+        t = dealerHand.splice(scores[0].index, 1)[0];
+    }
+    
+    // UI 更新
+    const img = document.createElement('img'); 
+    img.src = `images/${t}.png`; 
+    img.className = 'discardTile';
     $('discardArea').appendChild(img);
     playSfx('discard'); 
-    lastDiscardedTile = t; playerTurn = true; updateUI();
+    lastDiscardedTile = t; 
+    playerTurn = true; 
+    updateUI();
 }
+
+// --- 輔助函數：判斷是否聽牌 ---
+function checkIfTenpai(testHand) {
+    const fullTiles = [
+        '1萬','2萬','3萬','4萬','5萬','6萬','7萬','8萬','9萬',
+        '1筒','2筒','3筒','4筒','5筒','6筒','7筒','8筒','9筒',
+        '1條','2條','3條','4條','5條','6條','7條','8條','9條',
+        '東','南','西','北','中','發','白'
+    ];
+    // 只要加入任何一張牌能胡，就是聽牌
+    return fullTiles.some(tile => checkWin([...testHand, tile]));
+}
+
 
 function checkWin(hand) {
     if (hand.length % 3 !== 2) return false;
