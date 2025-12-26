@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <title>台灣麻將 - 台數補完版 (平胡/三暗刻)</title>
 <style>
+
+#backBtn{position:fixed;top:10px;right:10px;padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;z-index:9999;box-shadow:2px 2px 5px rgba(0,0,0,0.3);transition: all 0.1s ease;}
+#backBtn:active{transform: translateY(2px);box-shadow:1px 1px 3px rgba(0,0,0,0.3);}
+  #func1:disabled {
+    background: #ddd !important; /* 改變背景顏色 */
+    color: #888 !important;      /* 改變文字顏色 */
+    cursor: not-allowed !important;
+    box-shadow: none !important; /* 去掉立體陰影效果 */
+}
+
     :root { --tile-w: 44px; --tile-h: 62px; }
     body { font-family: "Microsoft JhengHei", sans-serif; display: flex; flex-direction: column; align-items: center; background: #2c3e50; margin: 0; padding: 20px; color: white; overflow: hidden; }
     
@@ -40,6 +50,12 @@
 </head>
 <body>
 
+<div id="top-right">
+<button id="backBtn">回到上一頁</button>
+<div id="version" style="position:fixed; top:50px; right:20px; font-size:14px; color:#ffffff;">版本: V0.01</div>
+</div>
+
+
 <div id="table">
     <div id="dealerHand" class="hand"></div>
     <div id="dealerMeldArea"></div>
@@ -68,6 +84,9 @@
 </div>
 
 <script>
+
+backBtn.onclick=()=>{window.history.back();};   //回上一頁
+
 let deck=[], playerHand=[], dealerHand=[], playerMelds=[], dealerMelds=[];
 let playerMoney = 10000, initialDealt = false;
 let playerTurn=true, hasDrawnThisTurn=false, lastDiscardedTile=null;
