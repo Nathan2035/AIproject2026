@@ -52,7 +52,7 @@
 
 <div id="top-right">
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:50px; right:20px; font-size:14px; color:#ffffff;">版本: V0.01</div>
+<div id="version" style="position:fixed; top:50px; right:20px; font-size:14px; color:#ffffff;">版本: V0.02</div>
 </div>
 
 
@@ -130,11 +130,12 @@ function updateUI() {
         $('playerHand').appendChild(img);
     }
     if(dealerTempDraw) {
-        const img = document.createElement('img'); img.src = `images/${dealerTempDraw}.png`;
+        const img = document.createElement('img'); img.src = `images/back.png`; // 強制改為背面圖
+
         img.style.left = `-60px`; $('dealerHand').appendChild(img);
     }
     dealerHand.forEach((t, i) => {
-        const img = document.createElement('img'); img.src = `images/${t}.png`; 
+        const img = document.createElement('img'); img.src = `images/back.png`;  // 強制改為背面圖
         img.style.left = `${i*gap}px`; $('dealerHand').appendChild(img);
     });
     $('deckCount').textContent = deck.length;
