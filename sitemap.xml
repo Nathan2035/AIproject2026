@@ -1,28 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
 
-  <url>
-    <loc>https://nathan2035.github.io/AIproject2026/index.html</loc>
-  </url>
 
-  <url>
-    <loc>https://nathan2035.github.io/AIproject2026/data/horseracing/horseracing.html</loc>
-  </url>
+<url>
+  <loc>https://nathan2035.github.io/AIproject2026/</loc>
+  <lastmod>2025-12-26T22:03:16+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+<url>
+  <loc>https://nathan2035.github.io/AIproject2026/sitemap_index.html</loc>
+  <lastmod>2025-12-26T22:03:16+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://nathan2035.github.io/AIproject2026/index.html</loc>
+  <lastmod>2025-12-26T22:03:16+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://nathan2035.github.io/AIproject2026/data/horseracing/horseracing.html</loc>
+  <lastmod>2025-12-26T22:03:16+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://nathan2035.github.io/AIproject2026/data/betgame/betgame.html</loc>
+  <lastmod>2025-12-26T22:03:16+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://nathan2035.github.io/AIproject2026/data/New%20Texas%20holdem/New%20Texas%20holdem.html</loc>
+  <lastmod>2025-12-26T22:03:16+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://nathan2035.github.io/AIproject2026/data/racing/racing.html</loc>
+  <lastmod>2025-12-26T22:03:16+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://nathan2035.github.io/AIproject2026/data/Mahjong/Mahjong.html</loc>
+  <lastmod>2025-12-26T22:03:16+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
 
-  <url>
-    <loc>https://nathan2035.github.io/AIproject2026/data/betgame/betgame.html</loc>
-  </url>
-
-  <url>
-    <loc>https://nathan2035.github.io/AIproject2026/data/New%20Texas%20holdem/New%20Texas%20holdem.html</loc>
-  </url>
-
-  <url>
-    <loc>https://nathan2035.github.io/AIproject2026/data/racing/racing.html</loc>
-  </url>
-
-  <url>
-    <loc>https://nathan2035.github.io/AIproject2026/data/Mahjong/Mahjong.html</loc>
-  </url>
 
 </urlset>
