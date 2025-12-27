@@ -3,22 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>簡單賽車遊戲</title>
+<title>簡單賽車遊戲 V0.06</title>
 <style>
-/* 跨裝置適配：確保畫面完整顯示在手機內 */
+/* 強制鎖定視窗，避免 Safari 橡皮筋回彈與捲動 */
 html, body { 
     margin:0; padding:0; background:#333; font-family:monospace; 
     overflow: hidden; height: 100%; width: 100%; position: fixed;
 }
-#gameContainer {
-    width: 100vw; height: 100vh;
+
+#appContainer {
+    width: 100vw; height: 100dvh; /* 動態高度，避開 Safari 工具列 */
     display: flex; align-items: center; justify-content: center;
     background: #fff;
 }
+
+/* 這裡是核心修正：自動根據螢幕大小縮放遊戲 */
 #gameWrapper { 
-    width:400px; text-align:center; 
-    transform-origin: center center; /* 自動縮放核心 */
+    width:400px; 
+    text-align:center; 
+    transform-origin: center center;
+    flex-shrink: 0;
 }
+
+/* 以下為你 V0.05 的原始樣式，完全保留 */
 #game { width:400px; height:600px; background:#555; border:4px solid #000; position:relative; overflow:hidden; touch-action:none; }
 canvas { position:absolute; top:0; left:0; z-index:1; }
 .player, .enemy { position:absolute; z-index:2; }
@@ -34,52 +41,48 @@ canvas { position:absolute; top:0; left:0; z-index:1; }
 .text { display:inline-block; color:#fff; font-size:18px; }
 #startBtn { padding:8px 16px; font-size:16px; cursor:pointer; background:#0a0; border:none; border-radius:5px; color:#fff; height:fit-content; }
 #startBtn.disabled { background:#444; cursor:not-allowed; }
-#gameOver { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:48px; color:yellow; z-index:3; display:none; pointer-events:none; white-space: nowrap; }
+#gameOver { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:48px; color:yellow; z-index:3; display:none; pointer-events:none; }
 #backBtn{ position:fixed; top:10px; right:10px; padding:6px 12px; font-size:14px; background:#fff; border:2px solid #ccc; border-radius:6px; cursor:pointer; color:#333; z-index:9999; box-shadow: 2px 2px #dddddd; }
 #highScoreDisplay { display:flex; justify-content:center; gap:1px; padding:6px 10px; border:2px solid #000; background:#000; border-radius:5px; align-items:center; margin-bottom:10px; }
 </style>
 </head>
 <body>
 
-<div id="gameContainer">
+<div id="appContainer">
     <button id="backBtn">回到上一頁</button>
-    <div id="version" style="position:fixed; top:60px; right:15px; font-size:14px; color:#333333;">版本: V0.06</div>
-
-    <div id="gameWrapper">
-      <div id="highScoreDisplay"></div>
-      <div id="game">
-        <canvas id="roadCanvas" width="400" height="600"></canvas>
-        <div class="player" id="player"><div class="playerImg"></div></div>
-        <div id="gameOver">撞到了</div>
-        <div id="adBoard">恭喜達成1KM</div>
-      </div>
-      <div id="controls">
-        <div id="ledDisplay">
-          <div id="speedDisplay"></div>
-          <div id="kmDisplay"></div>
+       <div id="gameWrapper">
+        <div id="highScoreDisplay"></div>
+        <div id="game">
+            <canvas id="roadCanvas" width="400" height="600"></canvas>
+            <div class="player" id="player"><div class="playerImg"></div></div>
+            <div id="gameOver">撞到了</div>
+            <div id="adBoard">恭喜達成1KM</div>
         </div>
-        <button id="startBtn">開始遊戲</button>
-      </div>
+        <div id="controls">
+            <div id="ledDisplay">
+                <div id="speedDisplay"></div>
+                <div id="kmDisplay"></div>
+            </div>
+            <button id="startBtn">開始遊戲</button>
+        </div>
     </div>
 </div>
 
 <script>
-// --- 自動縮放邏輯 (解決 iPhone 畫面太大問題) ---
-function resizeGame() {
+// --- 自動縮放邏輯 ---
+let currentScale = 1;
+function resize() {
     const wrapper = document.getElementById('gameWrapper');
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    const padding = 20;
-    // 計算縮放比例，確保寬高都不超出螢幕
-    const scale = Math.min(
-        (windowWidth - padding) / 400,
-        (windowHeight - padding - 40) / 720 // 考慮到標題與按鈕高度
-    );
-    wrapper.style.transform = `scale(${Math.min(scale, 1)})`;
+    const winW = window.innerWidth;
+    const winH = window.innerHeight;
+    // 基準寬度 420, 基準高度 750 (包含控制列)
+    currentScale = Math.min(winW / 420, winH / 750);
+    wrapper.style.transform = `scale(${currentScale})`;
 }
-window.addEventListener('resize', resizeGame);
-resizeGame();
+window.addEventListener('resize', resize);
+resize();
 
+// --- 以下為 V0.05 原始程式碼邏輯 ---
 backBtn.onclick=()=>{window.history.back();};
 
 const game = document.getElementById('game');
@@ -104,7 +107,7 @@ const acceleration=100/6;
 let lastTimestamp=0;
 let enemySpawnTimer = 0;
 
-// 修改 1: 從 LocalStorage 載入最高紀錄
+// 修改：從 LocalStorage 讀取最高紀錄
 let highScore = parseFloat(localStorage.getItem('racing_high_score')) || 0;
 
 const PLAYER_HITBOX_SCALE = 0.8;
@@ -133,50 +136,47 @@ let nextAdKm = 1;
 let adBoardActive = false;
 let adBoardPosY = -50;
 
+// 音效 (原始 V0.05)
 let audioCtx, engineOsc, engineNoise, engineGain, engineFilter, engineRunning=false;
 let crashBuffer = null;
 function loadCrashSound(){
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  fetch('Crash_sound.mp3')
-    .then(response => response.arrayBuffer())
-    .then(data => audioCtx.decodeAudioData(data))
-    .then(buffer => { crashBuffer = buffer; })
-    .catch(err => console.error('載入撞車音效失敗:', err));
+  fetch('Crash_sound.mp3').then(r => r.arrayBuffer()).then(d => audioCtx.decodeAudioData(d)).then(b => { crashBuffer = b; }).catch(e => console.log(e));
 }
-function playCrashSound(){ if(!crashBuffer) return; const crashSource = audioCtx.createBufferSource(); crashSource.buffer = crashBuffer; crashSource.connect(audioCtx.destination); crashSource.start(); }
+function playCrashSound(){ if(!crashBuffer) return; const cs = audioCtx.createBufferSource(); cs.buffer = crashBuffer; cs.connect(audioCtx.destination); cs.start(); }
 function startEngineSound() {
   if(engineRunning) return;
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   loadCrashSound();
   engineOsc = audioCtx.createOscillator(); engineOsc.type = 'sawtooth';
   const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for(let i=0;i<data.length;i++) data[i] = Math.random()*2-1;
+  const data = buffer.getChannelData(0); for(let i=0;i<data.length;i++) data[i] = Math.random()*2-1;
   engineNoise = audioCtx.createBufferSource(); engineNoise.buffer = buffer; engineNoise.loop = true;
   engineGain = audioCtx.createGain(); engineGain.gain.value = 0.15;
   engineFilter = audioCtx.createBiquadFilter(); engineFilter.type = 'lowpass'; engineFilter.frequency.value = 800;
   engineOsc.connect(engineFilter); engineNoise.connect(engineFilter); engineFilter.connect(engineGain); engineGain.connect(audioCtx.destination);
-  engineOsc.frequency.value = speedToHz(speed);
-  engineOsc.start(); engineNoise.start(); engineRunning = true;
+  engineOsc.frequency.value = speedToHz(speed); engineOsc.start(); engineNoise.start(); engineRunning = true;
 }
 function stopEngineSound(){ if(!engineRunning) return; engineOsc.stop(); engineNoise.stop(); engineRunning = false; }
 function speedToHz(spd) { return 100 + spd * 5; }
 function updateEngineSound(delta){ if(!engineRunning) return; engineOsc.frequency.setTargetAtTime(speedToHz(speed), audioCtx.currentTime, 0.1); engineFilter.frequency.setTargetAtTime(500 + speed*1.5, audioCtx.currentTime, 0.1); engineGain.gain.setTargetAtTime(0.05 + speed/300*0.25, audioCtx.currentTime, 0.1); }
 
 function displayLED(container,text){ container.innerHTML=''; for(let c of text){ const span=document.createElement('span'); span.className = /[0-9]/.test(c)?'digit':'text'; span.textContent=c; container.appendChild(span); } }
-function updateInfo(){ while(km >= displayKm + 0.1) displayKm += 0.1; const kmFixed = displayKm.toFixed(1); const [kmInteger, kmDecimal] = kmFixed.split('.'); displayLED(speedDisplay, `${Math.floor(speed).toString().padStart(3,'0')} KM/H`); displayLED(kmDisplay, `${kmInteger.padStart(3,'0')}.${kmDecimal} KM`); }
-function updateHighScoreDisplay() { const roundedHigh = highScore.toFixed(1); const [intPart, decPart] = roundedHigh.split('.'); displayLED(highScoreDisplay, `最高紀錄 : ${intPart.padStart(3,'0')}.${decPart} KM`); }
-
-// 修改 2: 修正縮放後的點擊座標
-function getMouseX(e) {
-    const rect = game.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const scale = rect.width / 400; // 取得目前的顯示縮放比
-    return (clientX - rect.left) / scale;
+function updateInfo(){ while(km >= displayKm + 0.1) displayKm += 0.1; const kmFixed = displayKm.toFixed(1); const [ki, kd] = kmFixed.split('.'); displayLED(speedDisplay, `${Math.floor(speed).toString().padStart(3,'0')} KM/H`); displayLED(kmDisplay, `${ki.padStart(3,'0')}.${kd} KM`); }
+function updateHighScoreDisplay() { 
+    const roundedHigh = highScore.toFixed(1); 
+    const [int, dec] = roundedHigh.split('.'); 
+    displayLED(highScoreDisplay, `最高紀錄 : ${int.padStart(3,'0')}.${dec} KM`); 
 }
 
-game.addEventListener('mousemove', e=>{ if(!gameRunning) return; targetPlayerPos = getMouseX(e); });
-game.addEventListener('touchmove', e=>{ if(!gameRunning) return; targetPlayerPos = getMouseX(e); e.preventDefault(); }, {passive: false});
+// 修正：移動與觸控座標計算 (考量縮放)
+function getX(e) {
+    const rect = game.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    return (clientX - rect.left) / currentScale;
+}
+game.addEventListener('mousemove', e=>{ if(!gameRunning) return; targetPlayerPos = getX(e); });
+game.addEventListener('touchmove', e=>{ if(!gameRunning) return; targetPlayerPos = getX(e); e.preventDefault(); }, {passive: false});
 
 const playerHitboxDiv = document.createElement('div'); playerHitboxDiv.className = 'hitbox'; game.appendChild(playerHitboxDiv);
 function getScaledRect(rect, scale){ const w = rect.width * scale; const h = rect.height * scale; const cx = rect.left + rect.width / 2; const cy = rect.top + rect.height / 2; return {left: cx-w/2, right: cx+w/2, top: cy-h/2, bottom: cy+h/2}; }
@@ -184,38 +184,41 @@ function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
 function pointToRectDist(px, py, rect){ const cx = clamp(px, rect.left, rect.right); const cy = clamp(py, rect.top, rect.bottom); const dx = px-cx; const dy = py-cy; return Math.sqrt(dx*dx + dy*dy); }
 function roundedRectCollision(a,b,r){ const aCorners=[[a.left+r,a.top+r],[a.right-r,a.top+r],[a.left+r,a.bottom-r],[a.right-r,a.bottom-r]]; const bCorners=[[b.left+r,b.top+r],[b.right-r,b.top+r],[b.left+r,b.bottom-r],[b.right-r,b.bottom-r]]; for(const [ax,ay] of aCorners) for(const [bx,by] of bCorners) if((ax-bx)**2+(ay-by)**2<=(r*2)**2) return true; for(const [ax,ay] of aCorners) if(pointToRectDist(ax,ay,b)<=r) return true; for(const [bx,by] of bCorners) if(pointToRectDist(bx,by,a)<=r) return true; return false; }
 
-function spawnEnemy(){ let laneX, topY, attempts = 0; do { laneX = ENEMY_MIN_X + Math.random()*(ENEMY_MAX_X - ENEMY_MIN_X); topY = -100 - Math.random()*200; attempts++; } while(enemies.some(e => Math.abs(parseFloat(e.style.left)-laneX)<50 && Math.abs(parseFloat(e.style.top)-topY)<100) && attempts < 20); const enemy = document.createElement('div'); enemy.classList.add('enemy'); enemy.style.left = laneX + 'px'; enemy.style.top = topY + 'px'; const enemyImg = document.createElement('div'); enemyImg.className = 'enemyImg'; const rand = Math.random(); if(rand < 1/3) enemyImg.style.backgroundImage = "url('E1.png')"; else if(rand < 2/3) enemyImg.style.backgroundImage = "url('E2.png')"; else enemyImg.style.backgroundImage = "url('E3.png')"; enemy.appendChild(enemyImg); enemy.vx = (Math.random()*0.6 - 0.3); enemy.minX = ENEMY_MIN_X; enemy.maxX = ENEMY_MAX_X; enemy.targetSpeed = targetSpeed * (0.7 + Math.random()*0.2); enemy.speed = enemy.targetSpeed * (0.5 + Math.random()*0.3); enemy.acceleration = (enemy.targetSpeed - enemy.speed) / 3; const hitboxDiv = document.createElement('div'); hitboxDiv.className = 'hitbox'; enemy.hitboxDiv = hitboxDiv; game.appendChild(hitboxDiv); game.appendChild(enemy); enemies.push(enemy); }
+function spawnEnemy(){ 
+    let laneX, topY, attempts = 0; 
+    do { laneX = ENEMY_MIN_X + Math.random()*(ENEMY_MAX_X - ENEMY_MIN_X); topY = -100 - Math.random()*200; attempts++; 
+    } while(enemies.some(e => Math.abs(parseFloat(e.style.left)-laneX)<50 && Math.abs(parseFloat(e.style.top)-topY)<100) && attempts < 20); 
+    const enemy = document.createElement('div'); enemy.classList.add('enemy'); enemy.style.left = laneX + 'px'; enemy.style.top = topY + 'px'; 
+    const enemyImg = document.createElement('div'); enemyImg.className = 'enemyImg'; 
+    const rand = Math.random(); 
+    if(rand < 1/3) enemyImg.style.backgroundImage = "url('E1.png')"; 
+    else if(rand < 2/3) enemyImg.style.backgroundImage = "url('E2.png')"; 
+    else enemyImg.style.backgroundImage = "url('E3.png')"; 
+    enemy.appendChild(enemyImg); 
+    enemy.vx = (Math.random()*0.6 - 0.3); enemy.minX = ENEMY_MIN_X; enemy.maxX = ENEMY_MAX_X; 
+    enemy.targetSpeed = targetSpeed * (0.7 + Math.random()*0.2); 
+    enemy.speed = enemy.targetSpeed * (0.5 + Math.random()*0.3); 
+    enemy.acceleration = (enemy.targetSpeed - enemy.speed) / 3; 
+    const hitboxDiv = document.createElement('div'); hitboxDiv.className = 'hitbox'; enemy.hitboxDiv = hitboxDiv; 
+    game.appendChild(hitboxDiv); game.appendChild(enemy); enemies.push(enemy); 
+}
 function clearEnemies(){ enemies.forEach(e=>{ if(e.hitboxDiv) e.hitboxDiv.remove(); e.remove(); }); enemies=[]; }
 function adjustEnemyDistances(){ const SAFE_DIST = 100; for(let i=0;i<enemies.length;i++){ for(let j=i+1;j<enemies.length;j++){ const e1 = enemies[i]; const e2 = enemies[j]; let y1 = parseFloat(e1.style.top); let y2 = parseFloat(e2.style.top); let dy = y2 - y1; if(Math.abs(dy) < SAFE_DIST){ const push = (SAFE_DIST - Math.abs(dy)) * 0.5; const dir = dy >= 0 ? 1 : -1; e1.style.top = (y1 - push * dir)+'px'; e2.style.top = (y2 + push * dir)+'px'; } } } }
 
-let fireworks = [];
-let fireworkText = null;
-let fireworkTimer = 0;
+// 煙火特效 (V0.05)
+let fireworks = []; let fireworkText = null; let fireworkTimer = 0;
 function spawnFirework(x, y, km){
-    fireworks = [];
-    fireworkTimer = 5;
-    fireworkText = `恭喜你，達到${km}KM`;
-    for(let i=0;i<50;i++){
-        const angle = Math.random()*2*Math.PI;
-        const speed = 50 + Math.random()*100;
-        fireworks.push({x:x, y:y, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed, life:2, color:`hsl(${Math.random()*360},100%,50%)`});
-    }
+    fireworks = []; fireworkTimer = 5; fireworkText = `恭喜你，達到${km}KM`;
+    for(let i=0;i<50;i++){ const ang = Math.random()*2*Math.PI; const spd = 50 + Math.random()*100; fireworks.push({x, y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, life:2, color:`hsl(${Math.random()*360},100%,50%)`}); }
 }
 function updateFireworks(delta){
-    if(fireworkTimer<=0) return;
-    fireworkTimer -= delta;
-    fireworks.forEach(p=>{ p.x += p.vx*delta; p.y += p.vy*delta; p.vy += 20*delta; p.life -= delta/5; if(p.life<0)p.life=0; });
+    if(fireworkTimer<=0) return; fireworkTimer -= delta;
+    fireworks.forEach(p=>{ p.x += p.vx*delta; p.y += p.vy*delta; p.vy += 20*delta; p.life -= delta/5; });
 }
 function drawFireworks(){
     if(fireworkTimer<=0) return;
-    fireworks.forEach(p=>{ ctx.fillStyle=p.color; ctx.globalAlpha=p.life; ctx.beginPath(); ctx.arc(p.x,p.y,3,0,2*Math.PI); ctx.fill(); });
-    if(fireworkText){
-        ctx.globalAlpha = Math.sin(Date.now()/100)*0.5+0.5;
-        ctx.fillStyle='yellow';
-        ctx.font='32px monospace';
-        ctx.textAlign='center';
-        ctx.fillText(fireworkText, gameWidth/2, gameHeight/2);
-    }
+    fireworks.forEach(p=>{ ctx.fillStyle=p.color; ctx.globalAlpha=Math.max(0,p.life); ctx.beginPath(); ctx.arc(p.x,p.y,3,0,2*Math.PI); ctx.fill(); });
+    if(fireworkText){ ctx.globalAlpha = Math.sin(Date.now()/100)*0.5+0.5; ctx.fillStyle='yellow'; ctx.font='32px monospace'; ctx.textAlign='center'; ctx.fillText(fireworkText, gameWidth/2, gameHeight/2); }
     ctx.globalAlpha=1;
 }
 
@@ -233,8 +236,7 @@ function drawRoad(){
 
 function gameLoop(timestamp){
     if(!lastTimestamp) lastTimestamp=timestamp;
-    const delta = (timestamp - lastTimestamp)/1000;
-    lastTimestamp = timestamp;
+    const delta = (timestamp - lastTimestamp)/1000; lastTimestamp = timestamp;
 
     if(km >= 1 && targetSpeed===100) targetSpeed=150;
     if(km >= 2 && targetSpeed===150) targetSpeed=200;
@@ -245,61 +247,45 @@ function gameLoop(timestamp){
     lineOffset += roadSpeedPxPerSec*delta;
     if(lineOffset >= WHITE_LINE_PX+GAP_PX) lineOffset -= WHITE_LINE_PX+GAP_PX;
 
-    drawRoad();
-    updateInfo();
-    updateFireworks(delta);
-    drawFireworks();
+    drawRoad(); updateInfo(); updateFireworks(delta); drawFireworks();
 
     if(Math.floor(km) === nextAdKm){
-        const currentKm = nextAdKm; adBoardActive = true; adBoardPosY = -50; adBoard.style.display = 'flex';
-        adBoard.style.left = RIGHT_MARGIN + 5 + 'px'; adBoard.textContent = `恭喜達成${currentKm}KM`;
-        spawnFirework(gameWidth/2 - 50, gameHeight/2, currentKm);
-        setTimeout(()=>{ spawnFirework(gameWidth/2 + 50, gameHeight/2, currentKm); }, 500);
+        const curKm = nextAdKm; adBoardActive = true; adBoardPosY = -50; adBoard.style.display = 'flex';
+        adBoard.style.left = RIGHT_MARGIN + 5 + 'px'; adBoard.textContent = `恭喜達成${curKm}KM`;
+        spawnFirework(gameWidth/2 - 50, gameHeight/2, curKm);
+        setTimeout(()=>{ spawnFirework(gameWidth/2 + 50, gameHeight/2, curKm); }, 500);
         nextAdKm++;
     }
 
-    if(adBoardActive){
-        adBoardPosY += roadSpeedPxPerSec*delta;
-        adBoard.style.top = adBoardPosY+'px';
-        if(adBoardPosY>gameHeight){ adBoardActive=false; adBoard.style.display='none'; }
-    }
+    if(adBoardActive){ adBoardPosY += roadSpeedPxPerSec*delta; adBoard.style.top = adBoardPosY+'px'; if(adBoardPosY>gameHeight){ adBoardActive=false; adBoard.style.display='none'; } }
 
     const diff = targetPlayerPos - (playerPos+playerWidth/2);
     if(Math.abs(diff)>1){ const move = Math.sign(diff)*Math.min(Math.abs(diff), PLAYER_MOVE_SPEED*delta); playerPos+=move; playerPos=clamp(playerPos,PLAYER_MIN_X,PLAYER_MAX_X); player.style.left=playerPos+'px'; }
 
-    const playerRect = getScaledRect(player.getBoundingClientRect(), PLAYER_HITBOX_SCALE);
-    if(SHOW_HITBOX){ const gameRect=game.getBoundingClientRect(); playerHitboxDiv.style.display='block'; playerHitboxDiv.style.left=(playerRect.left-gameRect.left)+'px'; playerHitboxDiv.style.top=(playerRect.top-gameRect.top)+'px'; playerHitboxDiv.style.width=(playerRect.right-playerRect.left)+'px'; playerHitboxDiv.style.height=(playerRect.bottom-playerRect.top)+'px'; }
-    else playerHitboxDiv.style.display='none';
+    const pRect = getScaledRect(player.getBoundingClientRect(), PLAYER_HITBOX_SCALE);
+    if(SHOW_HITBOX){ const gRect=game.getBoundingClientRect(); playerHitboxDiv.style.display='block'; playerHitboxDiv.style.left=(pRect.left-gRect.left)+'px'; playerHitboxDiv.style.top=(pRect.top-gRect.top)+'px'; playerHitboxDiv.style.width=(pRect.right-pRect.left)+'px'; playerHitboxDiv.style.height=(pRect.bottom-pRect.top)+'px'; } else playerHitboxDiv.style.display='none';
 
     enemySpawnTimer += delta;
-    let currentInterval = 2; if(targetSpeed===150) currentInterval=1.5; else if(targetSpeed===200) currentInterval=1;
-    if(enemySpawnTimer>=currentInterval){ spawnEnemy(); enemySpawnTimer=0; }
+    let curInt = (targetSpeed===200)?1:(targetSpeed===150?1.5:2);
+    if(enemySpawnTimer>=curInt){ spawnEnemy(); enemySpawnTimer=0; }
 
     enemies.forEach((enemy,idx)=>{
         if(enemy.speed<enemy.targetSpeed){ enemy.speed+=enemy.acceleration*delta; if(enemy.speed>enemy.targetSpeed) enemy.speed=enemy.targetSpeed; }
-        const relativeSpeed = enemy.speed-speed;
-        const relativeMovePx = (relativeSpeed*1000/3600)*PX_PER_M*delta;
+        const relativeMovePx = ((enemy.speed-speed)*1000/3600)*PX_PER_M*delta;
         enemy.style.top = parseFloat(enemy.style.top)-relativeMovePx+'px';
         let left=parseFloat(enemy.style.left)+enemy.vx*delta*60; left=clamp(left,ENEMY_MIN_X,ENEMY_MAX_X); enemy.style.left=left+'px';
         if(parseFloat(enemy.style.top)>gameHeight){ if(enemy.hitboxDiv) enemy.hitboxDiv.remove(); enemy.remove(); enemies.splice(idx,1); return; }
-        const enemyRect=getScaledRect(enemy.getBoundingClientRect(), ENEMY_HITBOX_SCALE);
-        if(SHOW_HITBOX){ const gameRect=game.getBoundingClientRect(); const div=enemy.hitboxDiv; div.style.display='block'; div.style.left=(enemyRect.left-gameRect.left)+'px'; div.style.top=(enemyRect.top-gameRect.top)+'px'; div.style.width=(enemyRect.right-enemyRect.left)+'px'; div.style.height=(enemyRect.bottom-enemyRect.top)+'px'; }
-        else if(enemy.hitboxDiv) enemy.hitboxDiv.style.display='none';
-        if(roundedRectCollision(playerRect, enemyRect, HITBOX_RADIUS)){
+        const eRect=getScaledRect(enemy.getBoundingClientRect(), ENEMY_HITBOX_SCALE);
+        if(SHOW_HITBOX){ const gRect=game.getBoundingClientRect(); const div=enemy.hitboxDiv; div.style.display='block'; div.style.left=(eRect.left-gRect.left)+'px'; div.style.top=(eRect.top-gRect.top)+'px'; div.style.width=(eRect.right-eRect.left)+'px'; div.style.height=(eRect.bottom-eRect.top)+'px'; } else if(enemy.hitboxDiv) enemy.hitboxDiv.style.display='none';
+        if(roundedRectCollision(pRect, eRect, HITBOX_RADIUS)){
             gameOverText.style.display='block'; gameRunning=false; startBtn.classList.remove('disabled'); startBtn.disabled=false; stopEngineSound(); playCrashSound();
         }
     });
 
     adjustEnemyDistances();
     if(engineRunning) updateEngineSound(delta);
-    
-    // 修改 3: 紀錄最高紀錄並儲存
     const roundedKm = parseFloat(displayKm.toFixed(1));
-    if(roundedKm>highScore){ 
-        highScore=roundedKm; 
-        localStorage.setItem('racing_high_score', highScore);
-        updateHighScoreDisplay(); 
-    }
+    if(roundedKm>highScore){ highScore=roundedKm; localStorage.setItem('racing_high_score', highScore); updateHighScoreDisplay(); }
     if(gameRunning) requestAnimationFrame(gameLoop);
 }
 
