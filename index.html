@@ -2,13 +2,13 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>Generative AI</title>
+<title>AIsoftware AI生成小遊戲</title>
 <style>
 body {
     margin: 0;
     background: linear-gradient(135deg, #a0e0e0, #0abab5);
     font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    color: #333333; /* 全部文字深灰 */
+    color: #333333;
     overflow-x: hidden;
     text-align: center;
 }
@@ -17,7 +17,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px 20px;
+    padding: 10px 20px; /* 縮小上下內距以容納多行字 */
     background: rgba(255,255,255,0.85);
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     position: fixed;
@@ -28,14 +28,32 @@ header {
 
 header h1 {
     margin: 0;
-    font-weight: 600;
-    letter-spacing: 1px;
-    font-size: 24px;
-    max-width: 60%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-align: left;
+    display: flex;
+    flex-direction: column; /* 改為垂直排列 */
+    gap: 2px;
+}
+
+/* 第一排：深灰大字 */
+.title-main {
+    font-size: 26px;
     color: #333333;
+    font-weight: 700;
+}
+
+/* 第二排：淺灰小字 */
+.title-sub {
+    font-size: 15px;
+    color: #777777;
+    font-weight: 500;
+}
+
+/* 第三排：極細淺淺灰 */
+.title-desc {
+    font-size: 12px;
+    color: #aaaaaa;
+    font-weight: 300;
+    letter-spacing: 0px;
 }
 
 header nav {
@@ -53,9 +71,6 @@ header nav a {
     font-weight: 500;
     cursor: pointer;
     transition: color 0.3s;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     font-size: 14px;
 }
 
@@ -67,7 +82,7 @@ header nav a:hover {
     position: relative;
     width: 100vw;
     height: 80vh;
-    margin-top: 80px;
+    margin-top: 100px; /* 增加頂部間距，避免泡泡被加高的 header 擋住 */
 }
 
 .bubble {
@@ -94,104 +109,70 @@ header nav a:hover {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #333333; /* 深灰 */
+    color: #333333;
     font-weight: bold;
     text-decoration: none;
     opacity: 0.9;
-    transition:
-        transform 0.8s cubic-bezier(.2,.8,.2,1),
-        box-shadow 0.6s ease,
-        opacity 0.6s ease;
+    transition: transform 0.8s cubic-bezier(.2,.8,.2,1), box-shadow 0.6s ease, opacity 0.6s ease;
     font-size: 14px;
-}
-
-.bubble::before {
-    content: "";
-    position: absolute;
-    top: 12%;
-    left: 18%;
-    width: 38%;
-    height: 38%;
-    border-radius: 50%;
-    background: radial-gradient(
-        circle,
-        rgba(255,255,255,0.8),
-        rgba(255,255,255,0.4),
-        rgba(255,255,255,0)
-    );
-    filter: blur(6px);
-    pointer-events: none;
 }
 
 .bubble:hover {
     opacity: 1;
     z-index: 10;
-    box-shadow:
-        inset -15px -15px 35px rgba(255,255,255,0.5),
-        inset 15px 15px 35px rgba(0,0,0,0.15),
-        0 0 25px rgba(0,0,0,0.08);
 }
 
 .bubble span.date {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 300;
     opacity: 0.7;
     margin-top: 2px;
-    color: #333333;
 }
 
 footer {
-    position: absolute;
+    position: fixed;
     bottom: 0;
     width: 100%;
-    padding: 14px 20px;
+    padding: 10px 0;
     background: rgba(255,255,255,0.85);
-    font-size: 14px;
-    box-shadow: 0 -2px 6px rgba(0,0,0,0.05);
-    text-align: center;
+    font-size: 13px;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 10px;
-    color: #333333;
-}
-
-footer a {
-    color: #333333;
-    text-decoration: none;
-    font-weight: normal;
-}
-
-footer #todayDate {
-    font-size: 13px;
+    gap: 15px;
     color: #333333;
 }
 
 .aboutOverlay {
     position: fixed;
-    top: 80px;
+    top: 110px;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
     max-width: 600px;
-    padding: 0;
-    font-size: 16px;
-    line-height: 1.5;
+    padding: 15px;
+    font-size: 15px;
+    line-height: 1.6;
     color: #333333;
     display: none;
     z-index: 30;
-    pointer-events: none;
-    background: none;
-    box-shadow: none;
-    text-align: center;
+    background: rgba(255,255,255,0.9);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 </style>
 </head>
 <body>
 
 <header>
-    <h1>Generative AI</h1>
+    <h1>
+        <div>
+            <span class="title-main">AIsoftware</span>
+            <span class="title-sub">AI生成小遊戲</span>
+        </div>
+        <span class="title-desc">此網站內容都是由Generative AI產生代碼，都是一些可以直接在網頁執行的小遊戲及軟體，像撲克牌、麻將、賽車...等，不用下載及要求安裝任何軟體</span>
+    </h1>
     <nav>
         <a id="aboutBtn">About Us</a>
         <a id="aboutUsBtn">關於我們</a>
@@ -220,12 +201,12 @@ const bubbleData = [
     { name: "小瑪莉機台", link: "data/betgame/betgame.html", date: "2025/12/17" },
     { name: "新德州撲克", link: "data/New Texas holdem/New Texas holdem.html", date: "2025/12/19" },
     { name: "簡單賽車遊戲", link: "data/racing/racing.html", date: "2025/12/21" },
-    { name: "台灣麻將對戰", link: "data/Mahjong/Mahjong.html", date: "2025/12/26" },
+    { name: "台灣麻將對戰", link: "data/Mahjong/Mahjong.html", date: "2025/12/27" },
+    { name: "未來", link: "#" },
     { name: "未來", link: "#" },
     { name: "未來", link: "#" },
     { name: "未來", link: "#" },
     { name: "未來", link: "#" }
-    
 ];
 
 const BASE_SIZE = 110;
@@ -235,63 +216,42 @@ const container = document.getElementById("bubble-container");
 
 function getRandomPosition(placed) {
     const containerWidth = window.innerWidth;
-    const containerHeight = window.innerHeight * 0.8;
+    const containerHeight = window.innerHeight * 0.75;
     const maxWidth = Math.min(containerWidth, 1000);
-    const ratioX = 0.7;
-    const ratioY = 0.7;
-    const effectiveWidth = maxWidth * ratioX;
-    const effectiveHeight = containerHeight * ratioY;
-    const startX = (containerWidth - effectiveWidth) / 2;
-    const startY = (containerHeight - effectiveHeight) / 2;
+    const startX = (containerWidth - maxWidth) / 2;
+    const startY = 20;
 
     for (let i = 0; i < 3000; i++) {
-        const x = startX + Math.random() * (effectiveWidth - BASE_SIZE);
-        const y = startY + Math.random() * (effectiveHeight - BASE_SIZE);
-
-        let overlap = placed.some(p => {
-            const dx = p.x - x;
-            const dy = p.y - y;
-            return Math.hypot(dx, dy) < BASE_SIZE + PADDING;
-        });
-
+        const x = startX + Math.random() * (maxWidth - BASE_SIZE);
+        const y = startY + Math.random() * (containerHeight - BASE_SIZE);
+        let overlap = placed.some(p => Math.hypot(p.x - x, p.y - y) < BASE_SIZE + PADDING);
         if (!overlap) return { x, y };
     }
-
-    return { x: containerWidth / 2 - BASE_SIZE / 2, y: containerHeight / 2 - BASE_SIZE / 2 };
+    return { x: 0, y: 0 };
 }
 
 function createBubbles() {
     container.innerHTML = "";
     const placed = [];
-
     bubbleData.forEach((item) => {
         const bubble = document.createElement("a");
         bubble.className = "bubble";
         bubble.href = item.link;
-
         const nameSpan = document.createElement("span");
         nameSpan.textContent = item.name;
         bubble.appendChild(nameSpan);
-
         if(item.date) {
             const dateSpan = document.createElement("span");
             dateSpan.textContent = item.date;
             dateSpan.className = "date";
             bubble.appendChild(dateSpan);
         }
-
         const pos = getRandomPosition(placed);
         bubble.style.left = pos.x + "px";
         bubble.style.top  = pos.y + "px";
-        placed.push({ x: pos.x, y: pos.y });
-
-        bubble.addEventListener("mouseenter", () => {
-            bubble.style.transform = `scale(${HOVER_SCALE})`;
-        });
-        bubble.addEventListener("mouseleave", () => {
-            bubble.style.transform = "scale(1)";
-        });
-
+        placed.push(pos);
+        bubble.addEventListener("mouseenter", () => bubble.style.transform = `scale(${HOVER_SCALE})`);
+        bubble.addEventListener("mouseleave", () => bubble.style.transform = "scale(1)");
         container.appendChild(bubble);
     });
 }
@@ -299,41 +259,21 @@ function createBubbles() {
 createBubbles();
 window.addEventListener("resize", createBubbles);
 
-// About Us / 關於我們
 const aboutBtn = document.getElementById("aboutBtn");
 const aboutOverlay = document.getElementById("aboutOverlay");
 const aboutUsBtn = document.getElementById("aboutUsBtn");
 const aboutUsOverlay = document.getElementById("aboutUsOverlay");
 
-const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-function toggleOverlay(overlayToToggle, overlayToHide) {
-    if (overlayToToggle.style.display === "block") {
-        overlayToToggle.style.display = "none";
-    } else {
-        overlayToToggle.style.display = "block";
-        overlayToHide.style.display = "none";
-    }
+function toggleOverlay(on, off) {
+    on.style.display = (on.style.display === "block") ? "none" : "block";
+    off.style.display = "none";
 }
 
-if(isTouchDevice){
-    // 觸控裝置：點擊互斥切換
-    aboutBtn.addEventListener("click", () => toggleOverlay(aboutOverlay, aboutUsOverlay));
-    aboutUsBtn.addEventListener("click", () => toggleOverlay(aboutUsOverlay, aboutOverlay));
-} else {
-    // 桌面：懸停互斥切換
-    aboutBtn.addEventListener("mouseenter", () => toggleOverlay(aboutOverlay, aboutUsOverlay));
-    aboutUsBtn.addEventListener("mouseenter", () => toggleOverlay(aboutUsOverlay, aboutOverlay));
-}
+aboutBtn.addEventListener("click", () => toggleOverlay(aboutOverlay, aboutUsOverlay));
+aboutUsBtn.addEventListener("click", () => toggleOverlay(aboutUsOverlay, aboutOverlay));
 
-
-// 顯示今天日期
 const today = new Date();
-const yyyy = today.getFullYear();
-const mm = String(today.getMonth() + 1).padStart(2, '0');
-const dd = String(today.getDate()).padStart(2, '0');
-document.getElementById('todayDate').textContent = `${yyyy}/${mm}/${dd}`;
-//版權宣告 : 程式可以免費使用, 但不能有營利的用途 Nathan
+document.getElementById('todayDate').textContent = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
 </script>
 
 </body>
