@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>賽豬遊戲</title>
 <style>
-/* --- 原始 CSS 完全保留，僅修改 width 為響應式 --- */
 body{font-family:Segoe UI,Arial;background:#fff;color:#333;padding:10px;text-align:center;margin:0;}
 #backBtn{position:fixed;top:10px;right:10px;padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;z-index:9999;box-shadow:2px 2px 5px rgba(0,0,0,0.3);transition: all 0.1s ease;}
 #backBtn:active{transform: translateY(2px);box-shadow:1px 1px 3px rgba(0,0,0,0.3);}
@@ -16,7 +15,23 @@ body{font-family:Segoe UI,Arial;background:#fff;color:#333;padding:10px;text-ali
 .bet-row select{padding:5px 8px;font-size:14px;background-color:#bbb;color:#000;border:none;border-radius:2px;cursor:pointer;}
 #button-row{margin-top:10px;display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap: wrap;}
 
-/* 關鍵修改 2：賽道寬度改為 95% 寬度，但最大不超過 900px */
+.chip-container {
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    padding: 3px 10px;
+    border-radius: 6px;
+    margin-left: 5px;
+    display: inline-block;
+    font-size: 16px;
+    color: #333;
+}
+.chip-val {
+    font-size: 20px;
+    font-weight: bold;
+    color: #d32f2f;
+    font-family: 'Courier New', Courier, monospace;
+}
+
 #track{position:relative;width:95%; max-width:900px; height:350px;margin:10px auto;border:4px solid #c9a44c;background:linear-gradient(#1f5f2a,#2e7d32);overflow:hidden;}
 .lane{position:absolute;left:0;width:100%;height:43.75px;border-bottom:1px solid rgba(255,255,255,.25);}
 .horse{position:absolute;right:10px;font-size:32px;transform-origin: center bottom;}
@@ -28,7 +43,6 @@ body{font-family:Segoe UI,Arial;background:#fff;color:#333;padding:10px;text-ali
 #message{font-size:28px;color:#ffd700;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-shadow:2px 2px 4px #000;text-align:left;pointer-events:none;white-space:pre-line;opacity:1;transition: opacity 1s ease;z-index:100;}
 #betMessage{font-size:20px;color:#ffeb3b;position:absolute;top:10%;left:50%;transform:translateX(-50%);text-shadow:2px 2px 4px #000;pointer-events:none;white-space:pre-line;opacity:1;transition: opacity 1s ease;}
 
-/* 關鍵修改 3：表格寬度改為響應式並加入滾動條防止手機切掉內容 */
 .table-wrap { width: 95%; max-width: 900px; margin: 0 auto; overflow-x: auto; }
 table{width:100%; min-width:600px; border-collapse:collapse;text-align:center;table-layout:fixed;}
 th,td{border:2px solid #ffd700;padding:0;height:25px;line-height:25px;font-size:85%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
@@ -37,7 +51,6 @@ th{background:#bbb;}
 button{padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;box-shadow:2px 2px 5px rgba(0,0,0,0.3);transition: all 0.1s ease; touch-action: manipulation;}
 button:active{transform: translateY(2px);box-shadow:1px 1px 3px rgba(0,0,0,0.3);}
 button:disabled{background:#eee;cursor:not-allowed;color:#999;box-shadow:none;}
-.chipDisplay{display:inline-block;min-width:50px;padding:4px 6px;border:2px solid #ffb700;border-radius:4px;text-align:center;background-color:#fff;color:#333;font-size:18px;}
 .highlight{background-color:#bbb;padding:2px 4px;border-radius:2px;}
 </style>
 </head>
@@ -48,7 +61,6 @@ button:disabled{background:#eee;cursor:not-allowed;color:#999;box-shadow:none;}
 
 <div id="controls">
     <div class="bet-row">
-        <span style="margin-right:10px; color:#333; align-self:center; font-size:30px">賽豬遊戲簡單版</span>
         <div class="bet-box">
             <label>George :</label>
             <select id="betSelect"></select>
@@ -58,6 +70,7 @@ button:disabled{background:#eee;cursor:not-allowed;color:#999;box-shadow:none;}
                 <option value="500">500元</option>
                 <option value="1000">1000元</option>
             </select>
+            <span class="chip-container">籌碼:<span id="georgeChipsDisp" class="chip-val">005000</span>元</span>
         </div>
         <div class="bet-box">
             <label>Mary :</label>
@@ -68,11 +81,11 @@ button:disabled{background:#eee;cursor:not-allowed;color:#999;box-shadow:none;}
                 <option value="500">500元</option>
                 <option value="1000">1000元</option>
             </select>
+            <span class="chip-container">籌碼:<span id="maryChipsDisp" class="chip-val">005000</span>元</span>
         </div>
     </div>
     <div id="button-row">
         <label style="font-size:14px;">請先選擇上面 <span class="highlight">編號</span> 及 <span class="highlight">金額</span> 再按下注</label>
-        <span>目前籌碼 : <span id="playerChips" class="chipDisplay">05000</span> 元</span>
         <button id="placeBetBtn">下注</button>
         <button id="startBtn" disabled>開始比賽</button>
         <button id="rematchBtn" disabled>重新比賽</button>
@@ -106,16 +119,18 @@ button:disabled{background:#eee;cursor:not-allowed;color:#999;box-shadow:none;}
 </div>
 
 <script>
-// --- JS 邏輯完全保留原始代碼 ---
 const HORSE_COUNT=8;
-let playerChips=5000;
+let georgeChips=5000;
+let maryChips=5000;
+
 let horses=[],rankingCounter=0,startTime=null,animationId=null,lastTs=null,ragingHorseId=null,raceHistory=[],betPlaced=false,statsVisible=false,currentBets=[],currentChips=[];
 
 const betSelect=document.getElementById('betSelect');
 const betSelect2=document.getElementById('betSelect2');
 const chipSelect1=document.getElementById('chipSelect1');
 const chipSelect2=document.getElementById('chipSelect2');
-const playerChipsEl=document.getElementById('playerChips');
+const georgeChipsDisp=document.getElementById('georgeChipsDisp');
+const maryChipsDisp=document.getElementById('maryChipsDisp');
 const countdownEl=document.getElementById('countdown');
 const horseRow=document.getElementById('horseRow');
 const timeRow=document.getElementById('timeRow');
@@ -132,17 +147,19 @@ const backBtn=document.getElementById('backBtn');
 
 backBtn.onclick=()=>{window.history.back();};
 
-// 針對行動裝置音訊限制，在點擊時 resume AudioContext
 const audioCtx=new(window.AudioContext||window.webkitAudioContext)();
 const audioBuffers={};
-async function loadAudio(name,url){const resp=await fetch(url);const arrBuf=await resp.arrayBuffer();audioBuffers[name]=await audioCtx.decodeAudioData(arrBuf);}
+async function loadAudio(name,url){try{const resp=await fetch(url);const arrBuf=await resp.arrayBuffer();audioBuffers[name]=await audioCtx.decodeAudioData(arrBuf);}catch(e){console.log("Audio load error")}}
 function playSound(name){
     if(audioCtx.state === 'suspended') audioCtx.resume();
     if(audioBuffers[name]){const src=audioCtx.createBufferSource();src.buffer=audioBuffers[name];src.connect(audioCtx.destination);src.start(0);}
 }
 loadAudio('start','correct_answer2.mp3');loadAudio('win','coin07.mp3');loadAudio('champion','cheers2.mp3');
 
-function updateChipsDisplay(){playerChipsEl.textContent=playerChips.toString().padStart(5,'0');}
+function updateChipsDisplay(){
+    georgeChipsDisp.textContent=georgeChips.toString().padStart(6,'0');
+    maryChipsDisp.textContent=maryChips.toString().padStart(6,'0');
+}
 
 function init(){
     track.querySelectorAll('.lane,.horse').forEach(e=>e.remove());
@@ -152,7 +169,9 @@ function init(){
     messageEl.textContent='';messageEl.style.opacity=1;
     betMessageEl.style.opacity=0;
     horses=[];rankingCounter=0;startTime=null;lastTs=null;
-    startBtn.disabled=true;rematchBtn.disabled=true;placeBetBtn.disabled=false;
+    startBtn.disabled=true;
+    rematchBtn.disabled=true; // 初始狀態禁用
+    placeBetBtn.disabled=false;
     betPlaced=false;ragingHorseId=Math.floor(Math.random()*HORSE_COUNT)+1;
 
     const laneHeight=350/HORSE_COUNT;
@@ -170,18 +189,30 @@ function init(){
 function showBetMessage(msg){betMessageEl.textContent=msg;betMessageEl.style.opacity=1;setTimeout(()=>{betMessageEl.style.opacity=0;},3000);}
 
 placeBetBtn.onclick=()=>{
-    if(audioCtx.state === 'suspended') audioCtx.resume(); // 行動裝置解鎖
+    if(audioCtx.state === 'suspended') audioCtx.resume();
     if(betPlaced) return;
     const bet1=parseInt(betSelect.value),bet2=parseInt(betSelect2.value);
-    if(bet1===bet2){showBetMessage('兩個下注不能選同一隻豬');return;}
     const chip1=parseInt(chipSelect1.value),chip2=parseInt(chipSelect2.value);
-    if(playerChips<chip1+chip2){showBetMessage('籌碼不足');return;}
-    playerChips-=(chip1+chip2);updateChipsDisplay();currentBets=[bet1,bet2];currentChips=[chip1,chip2];
+    
+    if(georgeChips < chip1){showBetMessage('George 籌碼不足');return;}
+    if(maryChips < chip2){showBetMessage('Mary 籌碼不足');return;}
+
+    georgeChips -= chip1;
+    maryChips -= chip2;
+    
+    updateChipsDisplay();
+    currentBets=[bet1,bet2];
+    currentChips=[chip1,chip2];
     showBetMessage(`已下注！George押${bet1}號${chip1}元，Mary押${bet2}號${chip2}元`);
     startBtn.disabled=false;placeBetBtn.disabled=true;betPlaced=true;
 };
 
-startBtn.onclick=()=>{if(animationId||!betPlaced) return;startBtn.disabled=true;rematchBtn.disabled=false;startCountdown();};
+startBtn.onclick=()=>{
+    if(animationId||!betPlaced) return;
+    startBtn.disabled=true;
+    rematchBtn.disabled=true; // 按下開始後，確保重新比賽按鈕不能按
+    startCountdown();
+};
 
 function startCountdown(){
     let count=3;countdownEl.style.display='block';startLine.style.display='block';
@@ -192,25 +223,30 @@ function startCountdown(){
 function update(ts){
     if(lastTs===null) lastTs=ts;
     const delta=(ts-lastTs)/1000;lastTs=ts;
-    const currentTrackWidth = track.clientWidth; // 關鍵修改：抓取即時賽道寬度
+    const currentTrackWidth = track.clientWidth;
     horses.forEach(h=>{
         if(h.finished) return;
         if(h.id===ragingHorseId&&!h.isRaging&&Math.random()<0.005){h.isRaging=true;h.rageTime=0.5;h.rageSpeed=(1+Math.random()*2)*0.8;h.el.style.fontSize="36px";}
         let actualSpeed=h.speed;
         if(h.isRaging){actualSpeed+=h.rageSpeed;h.rageTime-=delta;if(h.rageTime<=0){h.isRaging=false;h.el.style.fontSize="32px";}}
-        
-        // 為了讓不同螢幕寬度的體感速度接近，乘上一個比例
         const widthFactor = currentTrackWidth / 900;
         h.x+=actualSpeed*delta*120*widthFactor;
         h.el.style.right=h.x+'px';
-        
         h.tilt+=0.4*h.tiltDirection;if(h.tilt>=10) h.tiltDirection=-1;if(h.tilt<=-10) h.tiltDirection=1;h.el.style.transform=`rotate(${h.tilt}deg)`;
-        
-        // 判斷是否過線
         if(h.x>=currentTrackWidth-50&&!h.finished){h.finished=true;h.finishTime=((ts-startTime)/1000).toFixed(2);horseRow.cells[rankingCounter].textContent=h.id;timeRow.cells[rankingCounter].textContent=h.finishTime+'s';
         if(rankingCounter===0){const crown=document.createElement('div');crown.className='crown';crown.textContent='👑';h.el.appendChild(crown);playSound('champion');}rankingCounter++;}
     });
-    if(horses.every(h=>h.finished)){saveRaceResult();handleBetResults();cancelAnimationFrame(animationId);animationId=null;lastTs=null;return;}
+
+    // 當所有小豬（包括最後一名）都抵達終點時
+    if(horses.every(h=>h.finished)){
+        saveRaceResult();
+        handleBetResults();
+        cancelAnimationFrame(animationId);
+        animationId=null;
+        lastTs=null;
+        rematchBtn.disabled=false; // 最後一名跑完，恢復按鈕
+        return;
+    }
     animationId=requestAnimationFrame(update);
 }
 
@@ -221,9 +257,9 @@ function handleBetResults(){
     let resultMsgs=[];
     currentBets.forEach((bet,idx)=>{
         const chip=currentChips[idx];let reward=0;let msg='';const name=idx===0?'George':'Mary';
-        if(bet===firstThree[0]){reward=chip*3;playerChips+=reward;msg=`${name}押中冠軍 獎金 ${reward}元`;playSound('win');}
-        else if(bet===firstThree[1]){reward=chip*2;playerChips+=reward;msg=`${name}押中亞軍 獎金 ${reward}元`;}
-        else if(bet===firstThree[2]){reward=chip*1;playerChips+=reward;msg=`${name}打平 獎金 ${reward}元`;}
+        if(bet===firstThree[0]){reward=chip*3;if(idx===0)georgeChips+=reward; else maryChips+=reward; msg=`${name}押中冠軍 獎金 ${reward}元`;playSound('win');}
+        else if(bet===firstThree[1]){reward=chip*2;if(idx===0)georgeChips+=reward; else maryChips+=reward; msg=`${name}押中亞軍 獎金 ${reward}元`;}
+        else if(bet===firstThree[2]){reward=chip*1;if(idx===0)georgeChips+=reward; else maryChips+=reward; msg=`${name}打平 獎金 ${reward}元`;}
         else{msg=`${name}沒有押中`;}
         resultMsgs.push(msg);
     });
@@ -231,7 +267,7 @@ function handleBetResults(){
 }
 
 rematchBtn.onclick=()=>{init();};
-resetBtn.onclick=()=>{playerChips=5000;init();};
+resetBtn.onclick=()=>{georgeChips=5000;maryChips=5000;init();};
 
 statsBtn.onclick=()=>{
     if(!statsVisible){
