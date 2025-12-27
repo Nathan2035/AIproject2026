@@ -1,0 +1,259 @@
+body {
+    font-family: Segoe UI, Arial;
+    background: #fff;
+    color: #333;
+    padding: 10px;
+    text-align: center;
+    margin: 0;
+}
+
+#backBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 14px;
+    background: #fff;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #333;
+    z-index: 9999;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    transition: all 0.1s ease;
+}
+
+#backBtn:active {
+    transform: translateY(2px);
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+#controls {
+    margin-bottom: 20px;
+}
+
+.bet-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #ffd700;
+    border-radius: 8px;
+}
+
+.bet-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.bet-row label {
+    margin-right: 5px;
+    font-size: 14px;
+}
+
+.bet-row select {
+    padding: 5px 8px;
+    font-size: 14px;
+    background-color: #bbb;
+    color: #000;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+#button-row {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.chip-container {
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    padding: 3px 10px;
+    border-radius: 6px;
+    margin-left: 5px;
+    display: inline-block;
+    font-size: 16px;
+    color: #333;
+}
+
+.chip-val {
+    font-size: 20px;
+    font-weight: bold;
+    color: #d32f2f;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#track {
+    position: relative;
+    width: 95%;
+    max-width: 900px;
+    height: 350px;
+    margin: 10px auto;
+    border: 4px solid #c9a44c;
+    background: linear-gradient(#1f5f2a,#2e7d32);
+    overflow: hidden;
+}
+
+.lane {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 43.75px;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+}
+
+.horse {
+    position: absolute;
+    right: 10px;
+    font-size: 32px;
+    transform-origin: center bottom;
+}
+
+.number {
+    position: absolute;
+    top: 16px;
+    left: 18px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #000;
+}
+
+.crown {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+}
+
+#finishLine {
+    position: absolute;
+    left: 50px;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: red;
+}
+
+#startLine {
+    position: absolute;
+    right: 50px;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: blue;
+    display: block;
+}
+
+#countdown {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    font-size: 96px;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 4px 4px 8px #000;
+    display: none;
+    pointer-events: none;
+}
+
+#message {
+    font-size: 28px;
+    color: #ffd700;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    text-shadow: 2px 2px 4px #000;
+    text-align: left;
+    pointer-events: none;
+    white-space: pre-line;
+    opacity: 1;
+    transition: opacity 1s ease;
+    z-index: 100;
+}
+
+#betMessage {
+    font-size: 20px;
+    color: #ffeb3b;
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    text-shadow: 2px 2px 4px #000;
+    pointer-events: none;
+    white-space: pre-line;
+    opacity: 1;
+    transition: opacity 1s ease;
+}
+
+.table-wrap {
+    width: 95%;
+    max-width: 900px;
+    margin: 0 auto;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    text-align: center;
+    table-layout: fixed;
+}
+
+th, td {
+    border: 2px solid #ffd700;
+    padding: 0;
+    height: 25px;
+    line-height: 25px;
+    font-size: 85%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+th {
+    background: #bbb;
+}
+
+button {
+    padding: 6px 12px;
+    font-size: 14px;
+    background: #fff;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #333;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    transition: all 0.1s ease;
+    touch-action: manipulation;
+}
+
+button:active {
+    transform: translateY(2px);
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+button:disabled {
+    background: #eee;
+    cursor: not-allowed;
+    color: #999;
+    box-shadow: none;
+}
+
+.highlight {
+    background-color: #bbb;
+    padding: 2px 4px;
+    border-radius: 2px;
+}
