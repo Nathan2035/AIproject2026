@@ -1,0 +1,221 @@
+body {
+    margin: 0;
+    background: #f0f0f0;
+    font-family: Arial, "Microsoft JhengHei", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    touch-action: manipulation;
+}
+
+#container {
+    border: 4px solid black;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    margin: 10px auto;
+    box-sizing: border-box;
+}
+
+#top {
+    width: 352px;
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+}
+
+.panel {
+    width: 165px;
+    background: #222;
+    color: #0f0;
+    border: 4px solid gold;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.panel-title { font-size: 16px; margin-bottom: 4px; color: #fff; }
+
+.digits { display: flex; gap: 3px; }
+.digit {
+    width: 26px;
+    height: 34px;
+    background: #111;
+    border: 2px solid #555;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #f00;
+    font-weight: bold;
+    font-size: 26px;
+    box-shadow: 0 0 6px #f00, inset 0 0 4px #600;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+}
+
+#game {
+    position: relative;
+    width: 340px;
+    height: 340px;
+    border: 6px solid gold;
+    background: #fff;
+    margin-bottom: 10px;
+}
+
+#grid {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+    gap: 1px;
+}
+
+.cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    position: relative;
+    background: #fff;
+    border: 1px solid #000;
+    box-sizing: border-box;
+}
+
+.cell-once-more {
+    font-size: 10px !important;
+    padding-left: 4px !important;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.light { width: 10px; height: 10px; border-radius: 50%; position: absolute; top: 2px; right: 2px; }
+
+/* 左右加倍指示燈樣式 */
+.light-indicator {
+    background: #bbb;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+#center-frame {
+    position: absolute;
+    border: 6px solid gold;
+    width: 232px;
+    height: 232px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+#msg {
+    position: absolute;
+    top: calc(50% - 40px);
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    font-weight: bold;
+    pointer-events: none;
+    width: 90%;
+    text-align: center;
+    z-index: 10;
+}
+
+#button-area {
+    display: flex;
+    align-items: center;
+    width: 352px;
+    margin-bottom: 15px;
+    gap: 5px;
+}
+
+#button-area button {
+    height: 40px;
+    padding: 0 8px;
+    background: linear-gradient(#ffffff, #dcdcdc);
+    color: #000;
+    border: 1px solid #666;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 2px 2px 0 #bbb, inset 0 1px 0 #fff;
+    white-space: nowrap;
+}
+
+#button-area button:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #666; }
+
+#func1 { margin-right: 25px; } 
+#func2 { margin-right: auto; } 
+#func3, #cancel, #func4 { gap: 2px; } 
+#func4 { margin-right: 25px; } 
+
+#bets {
+    display: flex;
+    justify-content: space-between;
+    width: 352px;
+    gap: 2px;
+}
+
+.bet {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #000;
+    padding: 2px;
+    background: #fafafa;
+    min-width: 0;
+}
+
+.fixed-number {
+    width: 100%;
+    height: 16px;
+    background: #ccc;
+    border: 1px solid #555;
+    font-size: 11px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+.bet button { 
+    width: 100%; 
+    height: 30px; 
+    font-size: 16px; 
+    margin: 2px 0; 
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 !important;
+    text-indent: 0 !important;
+    -webkit-appearance: none;
+    border: 1px solid #ccc;
+    background: #fff;
+    line-height: 1;
+    text-align: center;
+}
+
+.bet .count {
+    width: 95%;
+    height: 20px;
+    background: #111;
+    color: #f00;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    font-family: monospace;
+}
+
+#func1:disabled { background: #ddd !important; color: #888 !important; box-shadow: none !important; }
+#top-right { width: 352px; display: flex; justify-content: space-between; margin-bottom: 5px; }
+#version { font-size: 12px; }
