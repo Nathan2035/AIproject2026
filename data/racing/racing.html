@@ -2,12 +2,15 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>簡單賽車遊戲</title>
 <style>
-html, body { margin:0; padding:0; background:#fff; font-family:monospace; }
-#gameWrapper { width:400px; margin:20px auto 0 auto; text-align:center; }
-#game { width:400px; height:600px; background:#555; border:4px solid #000; position:relative; overflow:hidden; touch-action:none; }
-canvas { position:absolute; top:0; left:0; z-index:1; }
+/* 增加響應式設定，確保手機/平板不跑版 */
+html, body { margin:0; padding:0; background:#fff; font-family:monospace; overflow-x: hidden; }
+#gameWrapper { width:100%; max-width:400px; margin:10px auto; text-align:center; box-sizing: border-box; }
+#game { width:100%; height:600px; background:#555; border:4px solid #000; position:relative; overflow:hidden; touch-action:none; margin: 0 auto; }
+canvas { position:absolute; top:0; left:0; z-index:1; width:100%; height:100%; }
+/* 保持原本比例 */
 .player, .enemy { position:absolute; z-index:2; }
 .player { bottom:30px; width:50px; height:100px; }
 .playerImg { position:absolute; top:10px; left:3px; width:55px; height:93px; background-image:url('You.png'); background-size:cover; background-position:center; pointer-events:none; filter: drop-shadow(6px 6px 8px rgba(0,0,0,0.5));}
@@ -15,15 +18,14 @@ canvas { position:absolute; top:0; left:0; z-index:1; }
 .enemyImg { position:absolute; top:10px; left:5px; width:50px; height:88px; background-size:cover; background-position:center; pointer-events:none; filter: drop-shadow(6px 6px 8px rgba(0,0,0,0.5));}
 .hitbox { position:absolute; border:2px dashed red; border-radius:18px; pointer-events:none; z-index:10; }
 #adBoard { position:absolute; width:65px; height:50px; background:#fff; border:2px solid #000; color:#000; display:flex; justify-content:center; align-items:center; font-weight:bold; font-size:18px; z-index:5; display:none; }
-#controls { display:flex; justify-content:space-between; align-items:center; margin-top:20px; }
+#controls { display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding: 0 10px; }
 #ledDisplay { display:flex; gap:10px; padding:6px 10px; border:2px solid #000; background:#000; border-radius:5px; align-items:center; }
 .digit { display:inline-block; min-width:16px; padding:1px 3px; background:#fff; color:#000; font-size:18px; border:1px solid #000; text-align:center; }
 .text { display:inline-block; color:#fff; font-size:18px; }
 #startBtn { padding:8px 16px; font-size:16px; cursor:pointer; background:#0a0; border:none; border-radius:5px; color:#fff; height:fit-content; }
 #startBtn.disabled { background:#444; cursor:not-allowed; }
-#gameOver { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:48px; color:yellow; z-index:3; display:none; pointer-events:none; }
+#gameOver { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:48px; color:yellow; z-index:3; display:none; pointer-events:none; width:100%; }
 #backBtn{ position:fixed; top:10px; right:10px; padding:6px 12px; font-size:14px; background:#fff; border:2px solid #ccc; border-radius:6px; cursor:pointer; color:#333; z-index:9999; box-shadow: 2px 2px #dddddd; }
-#backBtn:active { box-shadow: 2px 2px #eeeeee; transform: translateY(2px); }
 #highScoreDisplay { display:flex; justify-content:center; gap:1px; padding:6px 10px; border:2px solid #000; background:#000; border-radius:5px; align-items:center; margin-bottom:10px; }
 </style>
 </head>
@@ -73,7 +75,9 @@ let km=0, speed=0, displayKm=0, targetSpeed=100;
 const acceleration=100/6;
 let lastTimestamp=0;
 let enemySpawnTimer = 0;
-let highScore = 0;
+
+// 修改：從 LocalStorage 讀取最高紀錄
+let highScore = parseFloat(localStorage.getItem('racingGame_highScore')) || 0;
 
 const PLAYER_HITBOX_SCALE = 0.8;
 const ENEMY_HITBOX_SCALE = 0.8;
@@ -101,8 +105,7 @@ let nextAdKm = 1;
 let adBoardActive = false;
 let adBoardPosY = -50;
 
-// --- AudioContext & 引擎聲音 ---
-let audioCtx, engineOsc, engineNoise, engineGain, engineFilter, engineRunning=false;
+let audioCtx, engineOsc, engineNoise, engineGain, engineFilter, engineRunningStatus=false;
 let crashBuffer = null;
 function loadCrashSound(){
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -114,7 +117,7 @@ function loadCrashSound(){
 }
 function playCrashSound(){ if(!crashBuffer) return; const crashSource = audioCtx.createBufferSource(); crashSource.buffer = crashBuffer; crashSource.connect(audioCtx.destination); crashSource.start(); }
 function startEngineSound() {
-  if(engineRunning) return;
+  if(engineRunningStatus) return;
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   loadCrashSound();
   engineOsc = audioCtx.createOscillator(); engineOsc.type = 'sawtooth';
@@ -126,45 +129,41 @@ function startEngineSound() {
   engineFilter = audioCtx.createBiquadFilter(); engineFilter.type = 'lowpass'; engineFilter.frequency.value = 800;
   engineOsc.connect(engineFilter); engineNoise.connect(engineFilter); engineFilter.connect(engineGain); engineGain.connect(audioCtx.destination);
   engineOsc.frequency.value = speedToHz(speed);
-  engineOsc.start(); engineNoise.start(); engineRunning = true;
+  engineOsc.start(); engineNoise.start(); engineRunningStatus = true;
 }
-function stopEngineSound(){ if(!engineRunning) return; engineOsc.stop(); engineNoise.stop(); engineRunning = false; }
+function stopEngineSound(){ if(!engineRunningStatus) return; engineOsc.stop(); engineNoise.stop(); engineRunningStatus = false; }
 function speedToHz(spd) { return 100 + spd * 5; }
-function updateEngineSound(delta){ if(!engineRunning) return; engineOsc.frequency.setTargetAtTime(speedToHz(speed), audioCtx.currentTime, 0.1); engineFilter.frequency.setTargetAtTime(500 + speed*1.5, audioCtx.currentTime, 0.1); engineGain.gain.setTargetAtTime(0.05 + speed/300*0.25, audioCtx.currentTime, 0.1); }
+function updateEngineSound(delta){ if(!engineRunningStatus) return; engineOsc.frequency.setTargetAtTime(speedToHz(speed), audioCtx.currentTime, 0.1); engineFilter.frequency.setTargetAtTime(500 + speed*1.5, audioCtx.currentTime, 0.1); engineGain.gain.setTargetAtTime(0.05 + speed/300*0.25, audioCtx.currentTime, 0.1); }
 
-// --- LED顯示 ---
 function displayLED(container,text){ container.innerHTML=''; for(let c of text){ const span=document.createElement('span'); span.className = /[0-9]/.test(c)?'digit':'text'; span.textContent=c; container.appendChild(span); } }
 function updateInfo(){ while(km >= displayKm + 0.1) displayKm += 0.1; const kmFixed = displayKm.toFixed(1); const [kmInteger, kmDecimal] = kmFixed.split('.'); displayLED(speedDisplay, `${Math.floor(speed).toString().padStart(3,'0')} KM/H`); displayLED(kmDisplay, `${kmInteger.padStart(3,'0')}.${kmDecimal} KM`); }
 function updateHighScoreDisplay() { const roundedHigh = highScore.toFixed(1); const [intPart, decPart] = roundedHigh.split('.'); displayLED(highScoreDisplay, `最高紀錄 : ${intPart.padStart(3,'0')}.${decPart} KM`); }
 
-// --- 玩家滑鼠/觸控 ---
-game.addEventListener('mousemove', e=>{ if(!gameRunning) return; const rect = game.getBoundingClientRect(); targetPlayerPos = e.clientX - rect.left; });
-game.addEventListener('touchmove', e=>{ if(!gameRunning) return; const rect = game.getBoundingClientRect(); targetPlayerPos = e.touches[0].clientX - rect.left; e.preventDefault(); });
+// 改良觸控：iPhone/iPad 也要能平滑跟隨
+game.addEventListener('mousemove', e=>{ if(!gameRunning) return; const rect = game.getBoundingClientRect(); const scale = gameWidth / rect.width; targetPlayerPos = (e.clientX - rect.left) * scale; });
+game.addEventListener('touchmove', e=>{ if(!gameRunning) return; const rect = game.getBoundingClientRect(); const scale = gameWidth / rect.width; targetPlayerPos = (e.touches[0].clientX - rect.left) * scale; e.preventDefault(); }, {passive: false});
 
-// --- 玩家與敵車碰撞 ---
 const playerHitboxDiv = document.createElement('div'); playerHitboxDiv.className = 'hitbox'; game.appendChild(playerHitboxDiv);
 function getScaledRect(rect, scale){ const w = rect.width * scale; const h = rect.height * scale; const cx = rect.left + rect.width / 2; const cy = rect.top + rect.height / 2; return {left: cx-w/2, right: cx+w/2, top: cy-h/2, bottom: cy+h/2}; }
 function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
 function pointToRectDist(px, py, rect){ const cx = clamp(px, rect.left, rect.right); const cy = clamp(py, rect.top, rect.bottom); const dx = px-cx; const dy = py-cy; return Math.sqrt(dx*dx + dy*dy); }
 function roundedRectCollision(a,b,r){ const aCorners=[[a.left+r,a.top+r],[a.right-r,a.top+r],[a.left+r,a.bottom-r],[a.right-r,a.bottom-r]]; const bCorners=[[b.left+r,b.top+r],[b.right-r,b.top+r],[b.left+r,b.bottom-r],[b.right-r,b.bottom-r]]; for(const [ax,ay] of aCorners) for(const [bx,by] of bCorners) if((ax-bx)**2+(ay-by)**2<=(r*2)**2) return true; for(const [ax,ay] of aCorners) if(pointToRectDist(ax,ay,b)<=r) return true; for(const [bx,by] of bCorners) if(pointToRectDist(bx,by,a)<=r) return true; return false; }
 
-// --- 敵車生成 ---
 function spawnEnemy(){ let laneX, topY, attempts = 0; do { laneX = ENEMY_MIN_X + Math.random()*(ENEMY_MAX_X - ENEMY_MIN_X); topY = -100 - Math.random()*200; attempts++; } while(enemies.some(e => Math.abs(parseFloat(e.style.left)-laneX)<50 && Math.abs(parseFloat(e.style.top)-topY)<100) && attempts < 20); const enemy = document.createElement('div'); enemy.classList.add('enemy'); enemy.style.left = laneX + 'px'; enemy.style.top = topY + 'px'; const enemyImg = document.createElement('div'); enemyImg.className = 'enemyImg'; const rand = Math.random(); if(rand < 1/3) enemyImg.style.backgroundImage = "url('E1.png')"; else if(rand < 2/3) enemyImg.style.backgroundImage = "url('E2.png')"; else enemyImg.style.backgroundImage = "url('E3.png')"; enemy.appendChild(enemyImg); enemy.vx = (Math.random()*0.6 - 0.3); enemy.minX = ENEMY_MIN_X; enemy.maxX = ENEMY_MAX_X; enemy.targetSpeed = targetSpeed * (0.7 + Math.random()*0.2); enemy.speed = enemy.targetSpeed * (0.5 + Math.random()*0.3); enemy.acceleration = (enemy.targetSpeed - enemy.speed) / 3; const hitboxDiv = document.createElement('div'); hitboxDiv.className = 'hitbox'; enemy.hitboxDiv = hitboxDiv; game.appendChild(hitboxDiv); game.appendChild(enemy); enemies.push(enemy); }
-function clearEnemies(){ enemies.forEach(e=>{ e.hitboxDiv.remove(); e.remove(); }); enemies=[]; }
+function clearEnemies(){ enemies.forEach(e=>{ if(e.hitboxDiv) e.hitboxDiv.remove(); e.remove(); }); enemies=[]; }
 function adjustEnemyDistances(){ const SAFE_DIST = 100; for(let i=0;i<enemies.length;i++){ for(let j=i+1;j<enemies.length;j++){ const e1 = enemies[i]; const e2 = enemies[j]; let y1 = parseFloat(e1.style.top); let y2 = parseFloat(e2.style.top); let dy = y2 - y1; if(Math.abs(dy) < SAFE_DIST){ const push = (SAFE_DIST - Math.abs(dy)) * 0.5; const dir = dy >= 0 ? 1 : -1; e1.style.top = (y1 - push * dir)+'px'; e2.style.top = (y2 + push * dir)+'px'; } } } }
 
-// --- 煙火特效 ---
 let fireworks = [];
 let fireworkText = null;
 let fireworkTimer = 0;
-function spawnFirework(x, y, km){
+function spawnFirework(x, y, kmValue){
     fireworks = [];
     fireworkTimer = 5;
-    fireworkText = `恭喜你，達到${km}KM`;
+    fireworkText = `恭喜你，達到${kmValue}KM`;
     for(let i=0;i<50;i++){
         const angle = Math.random()*2*Math.PI;
-        const speed = 50 + Math.random()*100;
-        fireworks.push({x:x, y:y, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed, life:2, color:`hsl(${Math.random()*360},100%,50%)`});
+        const speedVal = 50 + Math.random()*100;
+        fireworks.push({x:x, y:y, vx:Math.cos(angle)*speedVal, vy:Math.sin(angle)*speedVal, life:2, color:`hsl(${Math.random()*360},100%,50%)`});
     }
 }
 function updateFireworks(delta){
@@ -185,7 +184,6 @@ function drawFireworks(){
     ctx.globalAlpha=1;
 }
 
-// --- 遊戲主迴圈 ---
 function drawRoad(){
     ctx.clearRect(0,0,gameWidth,gameHeight);
     ctx.fillStyle='#C2B280'; ctx.fillRect(0,0,LEFT_MARGIN,gameHeight); ctx.fillRect(RIGHT_MARGIN,0,gameWidth-RIGHT_MARGIN,gameHeight);
@@ -218,19 +216,14 @@ function gameLoop(timestamp){
     drawFireworks();
 
 if(Math.floor(km) === nextAdKm){
-    const currentKm = nextAdKm; // 先存下當前公里數
+    const currentKm = nextAdKm;
     adBoardActive = true;
     adBoardPosY = -50;
     adBoard.style.display = 'flex';
     adBoard.style.left = RIGHT_MARGIN + 5 + 'px';
     adBoard.textContent = `恭喜達成${currentKm}KM`;
-
-    // 第一發煙火
     spawnFirework(gameWidth/2 - 50, gameHeight/2, currentKm);
-
-    // 第二發煙火延遲 0.5 秒，使用 currentKm
     setTimeout(()=>{ spawnFirework(gameWidth/2 + 50, gameHeight/2, currentKm); }, 500);
-
     nextAdKm++;
 }
 
@@ -257,23 +250,29 @@ if(Math.floor(km) === nextAdKm){
         const relativeMovePx = (relativeSpeed*1000/3600)*PX_PER_M*delta;
         enemy.style.top = parseFloat(enemy.style.top)-relativeMovePx+'px';
         let left=parseFloat(enemy.style.left)+enemy.vx*delta*60; left=clamp(left,ENEMY_MIN_X,ENEMY_MAX_X); enemy.style.left=left+'px';
-        if(parseFloat(enemy.style.top)>gameHeight){ enemy.hitboxDiv.remove(); enemy.remove(); enemies.splice(idx,1); return; }
+        if(parseFloat(enemy.style.top)>gameHeight){ if(enemy.hitboxDiv) enemy.hitboxDiv.remove(); enemy.remove(); enemies.splice(idx,1); return; }
         const enemyRect=getScaledRect(enemy.getBoundingClientRect(), ENEMY_HITBOX_SCALE);
         if(SHOW_HITBOX){ const gameRect=game.getBoundingClientRect(); const div=enemy.hitboxDiv; div.style.display='block'; div.style.left=(enemyRect.left-gameRect.left)+'px'; div.style.top=(enemyRect.top-gameRect.top)+'px'; div.style.width=(enemyRect.right-enemyRect.left)+'px'; div.style.height=(enemyRect.bottom-enemyRect.top)+'px'; }
-        else enemy.hitboxDiv.style.display='none';
+        else if(enemy.hitboxDiv) enemy.hitboxDiv.style.display='none';
         if(roundedRectCollision(playerRect, enemyRect, HITBOX_RADIUS)){
             gameOverText.style.display='block'; gameRunning=false; startBtn.classList.remove('disabled'); startBtn.disabled=false; stopEngineSound(); playCrashSound();
         }
     });
 
     adjustEnemyDistances();
-    if(engineRunning) updateEngineSound(delta);
+    if(engineRunningStatus) updateEngineSound(delta);
+    
+    // 修改：更新最高紀錄並儲存到 LocalStorage
     const roundedKm = parseFloat(displayKm.toFixed(1));
-    if(roundedKm>highScore){ highScore=roundedKm; updateHighScoreDisplay(); }
+    if(roundedKm>highScore){ 
+        highScore=roundedKm; 
+        localStorage.setItem('racingGame_highScore', highScore);
+        updateHighScoreDisplay(); 
+    }
+    
     if(gameRunning) requestAnimationFrame(gameLoop);
 }
 
-// --- 開始遊戲按鈕 ---
 startBtn.addEventListener('click', ()=>{
     if(startBtn.disabled) return;
     startBtn.disabled=true; startBtn.classList.add('disabled');
@@ -282,9 +281,7 @@ startBtn.addEventListener('click', ()=>{
     updateInfo(); gameRunning=true; startEngineSound(); requestAnimationFrame(gameLoop);
 });
 
-// --- 初始化頁面 ---
 km=0; speed=0; displayKm=0; drawRoad(); updateInfo(); updateHighScoreDisplay();
-//版權宣告 : 程式可以免費使用, 但不能有營利的用途 Nathan
 </script>
 
 </body>
