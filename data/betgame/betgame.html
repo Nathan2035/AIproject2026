@@ -2,384 +2,465 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>小瑪莉跑燈機台</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小瑪莉跑燈機台 - V0.09</title>
 <style>
-body{margin:0;background:#fff;font-family:Arial;display:flex;flex-direction:column;align-items:center;position:relative;}
-#container{border:4px solid black;padding:5px 10px 0px 10px;display:flex;flex-direction:column;align-items:center;margin-top:6px;}
-#top{width:358px;display:flex;justify-content:space-between;margin:5px 0px 5px 0px;}
-.panel{width:170px;background:#222;color:#0f0;border:4px solid gold;padding:6px;display:flex;flex-direction:column;align-items:center;}
-.panel-title{font-size:18px;margin-bottom:4px;color:#fff;}
-.digits{display:flex;gap:3px;}
-.digit{width:26px;height:34px;background:#111;border:2px solid #555;display:flex;justify-content:center;align-items:center;color:#f00;font-weight:bold;font-size:26px;box-shadow:0 0 6px #f00,inset 0 0 4px #600;border-radius:4px;font-family:'Courier New',monospace;}
-#game{position:relative;width:348px;height:348px;border:6px solid gold;background:#fff;margin-bottom:10px;}
-#grid{width:100%;height:100%;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);gap:1px;}
-.cell{display:flex;justify-content:center;align-items:center;font-size:18px;position:relative;background:#fff;border:1px solid #000;}
-.light{width:10px;height:10px;border-radius:50%;position:absolute;top:2px;right:2px;}
-#center-frame{position:absolute;border:6px solid gold;width:240px;height:240px;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
-#msg{
-  position:absolute;
-  top:calc(50% - 50px);
-  left:50%;
-  transform:translate(-50%,-50%);
-  font-size:18px;
-  font-weight:bold;
-  pointer-events:none;
-  width: 250px;
-  text-align: center;
-  white-space: nowrap;
-}
-#bets{margin:10px 0;display:flex;width:356px;justify-content:space-between;gap:4px;}
-.bet{display:flex;flex-direction:column;align-items:center;width:45px;border:2px solid #000;padding:2px;box-sizing:border-box;}
-.fixed-number{width:100%;height:18px;background:#ccc;border:1px solid #555;font-size:14px;font-weight:bold;display:flex;justify-content:center;align-items:center;margin-bottom:2px;font-family:'Courier New',monospace;}
-.bet button{width:100%;height:25px;background:linear-gradient(#ffffff,#dcdcdc);color:#000;border:1px solid #666;border-radius:6px;cursor:pointer;font-weight:bold;font-size:11px;margin-bottom:4px;box-shadow:2px 2px 0 #bbb, inset 0 1px 0 #fff;transition:transform 0.05s, box-shadow 0.05s;}
-.bet button:active{transform:translate(3px,3px);box-shadow:0 0 0 #666,inset 0 1px 0 #ccc;}
-.bet .count{width:90%;height:20px;line-height:20px;text-align:center;background:#111;border:2px solid #555;color:#f00;font-weight:bold;font-size:18px;box-shadow:0 0 6px #f00,inset 0 0 4px #600;border-radius:3px;font-family:'Courier New',monospace;margin-top:2px;}
-#button-area{display:flex; align-items:center; margin-bottom:10px;}
-#button-area button{width:40px;height:38px;background:linear-gradient(#ffffff,#dcdcdc);color:#000;border:1px solid #666;border-radius:6px;cursor:pointer;font-size:12px;margin-left:25px;margin-bottom:-10px;box-shadow:2px 2px 0 #bbb, inset 0 1px 0 #fff;transition:transform 0.05s, box-shadow 0.05s;}
-#button-area button:active{transform:translate(3px,3px);box-shadow:0 0 0 #666,inset 0 1px 0 #ccc;}
-#button-area button#start { margin-left: 25px; }
-#button-area button#func1 { margin-left: 0px; }
-#button-area button#func2 { margin-left: 40px; }
-#button-area button#func3 { margin-left:40px; }
-#button-area button#cancel { margin-left:5px; }
-#button-area button#func4 { margin-left:5px; }
+    body {
+        margin: 0;
+        background: #f0f0f0;
+        font-family: Arial, "Microsoft JhengHei", sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        touch-action: manipulation;
+    }
 
-#backBtn{position:fixed;top:10px;right:10px;padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;z-index:9999;box-shadow:2px 2px 5px rgba(0,0,0,0.3);transition: all 0.1s ease;}
-#backBtn:active{transform: translateY(2px);box-shadow:1px 1px 3px rgba(0,0,0,0.3);}
-  #func1:disabled {
-    background: #ddd !important; /* 改變背景顏色 */
-    color: #888 !important;      /* 改變文字顏色 */
-    cursor: not-allowed !important;
-    box-shadow: none !important; /* 去掉立體陰影效果 */
-}
+    #container {
+        border: 4px solid black;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #fff;
+        margin: 10px auto;
+        box-sizing: border-box;
+    }
 
+    #top {
+        width: 352px;
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+    }
+
+    .panel {
+        width: 165px;
+        background: #222;
+        color: #0f0;
+        border: 4px solid gold;
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
+    }
+
+    .panel-title { font-size: 16px; margin-bottom: 4px; color: #fff; }
+
+    .digits { display: flex; gap: 3px; }
+    .digit {
+        width: 26px;
+        height: 34px;
+        background: #111;
+        border: 2px solid #555;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #f00;
+        font-weight: bold;
+        font-size: 26px;
+        box-shadow: 0 0 6px #f00, inset 0 0 4px #600;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+    }
+
+    #game {
+        position: relative;
+        width: 340px;
+        height: 340px;
+        border: 6px solid gold;
+        background: #fff;
+        margin-bottom: 10px;
+    }
+
+    #grid {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-template-rows: repeat(7, 1fr);
+        gap: 1px;
+    }
+
+    .cell {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 18px;
+        position: relative;
+        background: #fff;
+        border: 1px solid #000;
+        box-sizing: border-box;
+    }
+
+    /* 針對 ONCE MORE 的字體偏移優化 */
+    .cell-once-more {
+        font-size: 10px !important;
+        padding-left: 4px !important; /* 向右偏移 4px */
+        line-height: 1.1;
+        text-align: center;
+    }
+
+    .light { width: 10px; height: 10px; border-radius: 50%; position: absolute; top: 2px; right: 2px; }
+
+    #center-frame {
+        position: absolute;
+        border: 6px solid gold;
+        width: 232px;
+        height: 232px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+
+    #msg {
+        position: absolute;
+        top: calc(50% - 40px);
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 18px;
+        font-weight: bold;
+        pointer-events: none;
+        width: 90%;
+        text-align: center;
+        z-index: 10;
+    }
+
+    #button-area {
+        display: flex;
+        align-items: center;
+        width: 352px;
+        margin-bottom: 15px;
+        gap: 5px;
+    }
+
+    #button-area button {
+        height: 40px;
+        padding: 0 8px;
+        background: linear-gradient(#ffffff, #dcdcdc);
+        color: #000;
+        border: 1px solid #666;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+        box-shadow: 2px 2px 0 #bbb, inset 0 1px 0 #fff;
+        white-space: nowrap;
+    }
+
+    #button-area button:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #666; }
+
+    /* 按鈕間距邏輯 */
+    #func1 { margin-right: 25px; } 
+    #func2 { margin-right: auto; } 
+    #func3, #cancel, #func4 { gap: 2px; } 
+    #func4 { margin-right: 25px; } 
+
+    #bets {
+        display: flex;
+        justify-content: space-between;
+        width: 352px;
+        gap: 2px;
+    }
+
+    .bet {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 1px solid #000;
+        padding: 2px;
+        background: #fafafa;
+        min-width: 0;
+    }
+
+    .fixed-number {
+        width: 100%;
+        height: 16px;
+        background: #ccc;
+        border: 1px solid #555;
+        font-size: 11px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .bet button { width: 100%; height: 30px; font-size: 16px; margin: 2px 0; cursor: pointer; }
+
+    .bet .count {
+        width: 95%;
+        height: 20px;
+        background: #111;
+        color: #f00;
+        font-weight: bold;
+        font-size: 16px;
+        text-align: center;
+        font-family: monospace;
+    }
+
+    #func1:disabled { background: #ddd !important; color: #888 !important; box-shadow: none !important; }
+    #top-right { width: 352px; display: flex; justify-content: space-between; margin-bottom: 5px; }
 </style>
 </head>
 <body>
 
 <div id="top-right">
-<button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:50px; right:20px; font-size:14px; color:#333333;">版本: V0.06</div>
+    <button id="backBtn">⬅ 回上一頁</button>
+    <div id="version" style="font-size: 12px;">版本: V0.09</div>
 </div>
 
 <div id="container">
-  <div id="top">
-    <div class="panel">
-      <div class="panel-title">WIN</div>
-      <div class="digits" id="win-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
-    </div>
-    <div class="panel">
-      <div class="panel-title">CREDIT</div>
-      <div class="digits" id="credit-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
-    </div>
-  </div>
-
-  <div id="game">
-    <div id="grid"></div>
-    <div id="center-frame"></div>
-    <div id="msg"></div>
-
-    <div style="position:absolute; top:50%; left:40%; transform:translate(-50%,-50%); text-align:center;">
-      <div id="center-left-light" class="light" style="background:#bbb; width:14px; height:14px;"></div>
-      <div style="font-size:18px; color:#000; margin-top:15px;">左</div>
+    <div id="top">
+        <div class="panel">
+            <div class="panel-title">WIN</div>
+            <div class="digits" id="win-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
+        </div>
+        <div class="panel">
+            <div class="panel-title">CREDIT</div>
+            <div class="digits" id="credit-digits"><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div></div>
+        </div>
     </div>
 
-    <div style="position:absolute; top:50%; left:60%; transform:translate(-50%,-50%); text-align:center;">
-      <div id="center-right-light" class="light" style="background:#bbb; width:14px; height:14px;"></div>
-      <div style="font-size:18px; color:#000; margin-top:15px;">右</div>
+    <div id="game">
+        <div id="grid"></div>
+        <div id="center-frame"></div>
+        <div id="msg"></div>
+        <div style="position:absolute; top:50%; left:38%; transform:translate(-50%,-50%); text-align:center;">
+            <div id="center-left-light" class="light" style="background:#bbb; width:16px; height:16px; position:static;"></div>
+            <div style="font-size:16px; margin-top:8px;">左</div>
+        </div>
+        <div style="position:absolute; top:50%; left:62%; transform:translate(-50%,-50%); text-align:center;">
+            <div id="center-right-light" class="light" style="background:#bbb; width:16px; height:16px; position:static;"></div>
+            <div style="font-size:16px; margin-top:8px;">右</div>
+        </div>
+        <div id="center-win-digits" style="position:absolute; top:calc(50% + 60px); left:50%; transform:translate(-50%,-50%); display:flex; gap:3px;">
+            <div class="digit">0</div><div class="digit">0</div><div class="digit">0</div><div class="digit">0</div>
+        </div>
     </div>
 
-    <div id="center-win-digits" style="position:absolute; top:calc(50% + 60px); left:50%; transform:translate(-50%,-50%); display:flex; gap:3px;">
-      <div class="digit">0</div>
-      <div class="digit">0</div>
-      <div class="digit">0</div>
-      <div class="digit">0</div>
+    <div id="button-area">
+        <button id="func1">投幣</button>
+        <button id="func2">轉錢包</button>
+        <button id="func3">選左</button>
+        <button id="cancel">取消</button>
+        <button id="func4">選右</button>
+        <button id="start">開始</button>
     </div>
-  </div>
 
-  <div id="button-area">
-    <button id="func1">投幣</button>
-    <button id="func2">轉到錢包</button>
-    <button id="func3">選左</button>
-    <button id="cancel">取消</button> 
-    <button id="func4">選右</button>
-    <button id="start">開始</button>
-  </div>
-
-  <div id="bets"></div>
+    <div id="bets"></div>
 </div>
 
 <script>
-backBtn.onclick=()=>{window.history.back();};
+/* --- 原始邏輯完全保留 --- */
+const backBtn = document.getElementById('backBtn');
+backBtn.onclick = () => { window.history.back(); };
 
-// 音效設定
-const audioContext = new (window.AudioContext||window.webkitAudioContext)();
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let coinBuffer = null;
 fetch('coin07.mp3')
-  .then(r => r.arrayBuffer())
-  .then(b => audioContext.decodeAudioData(b))
-  .then(buf => { coinBuffer = buf; });
+    .then(r => r.arrayBuffer())
+    .then(b => audioContext.decodeAudioData(b))
+    .then(buf => { coinBuffer = buf; })
+    .catch(e => console.log("Audio load error"));
 
-function playCoin(){
-  if(!coinBuffer) return;
-  const source = audioContext.createBufferSource();
-  source.buffer = coinBuffer;
-  const gainNode = audioContext.createGain();
-  gainNode.gain.value = 0.5;
-  source.connect(gainNode).connect(audioContext.destination);
-  source.start(0);
+function playCoin() {
+    if (!coinBuffer) return;
+    const source = audioContext.createBufferSource();
+    source.buffer = coinBuffer;
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = 0.5;
+    source.connect(gainNode).connect(audioContext.destination);
+    source.start(0);
 }
 
-const grid=document.getElementById('grid'); 
-const msg=document.getElementById('msg');
-let credit=0, win=0;
-let bets={}, betCounts={}; 
-let spinning=false, pos=0;
-let centerWin=0;
-let flashingInterval=null;
-
+const grid = document.getElementById('grid');
+const msg = document.getElementById('msg');
 const func1Btn = document.getElementById('func1');
+let credit = 0, win = 0, spinning = false, pos = 0, centerWin = 0, flashingInterval = null;
+let bets = {}, betCounts = {};
 
-function updateDigits(id,val){
-  const s=val.toString().padStart(4,'0'); 
-  const d=document.getElementById(id).children; 
-  for(let i=0;i<4;i++) d[i].textContent=s[i];
+function updateDigits(id, val) {
+    const s = val.toString().padStart(4, '0');
+    const d = document.getElementById(id).children;
+    for (let i = 0; i < 4; i++) d[i].textContent = s[i];
 }
+function clearMsg() { msg.textContent = ''; }
 
-function clearMsg() {
-  msg.textContent = '';
-}
+const letters = Array(7).fill(0).map(() => Array(7).fill(''));
+letters[0][0] = '🍊'; letters[6][6] = '🍊'; letters[0][1] = '🛎️'; letters[6][5] = '🛎️';
+letters[0][2] = '🍒'; letters[0][5] = '🍒'; letters[2][6] = '🍒'; letters[5][6] = '🍒';
+letters[6][4] = '🍒'; letters[6][1] = '🍒'; letters[4][0] = '🍒'; letters[1][0] = '🍒';
+letters[0][3] = '🀄'; letters[0][4] = '🍎'; letters[2][0] = '🍎'; letters[4][6] = '🍎';
+letters[6][2] = '🍎'; letters[0][6] = '🥭'; letters[6][0] = '🥭'; letters[1][6] = '🍉';
+letters[6][3] = '7️⃣'; letters[5][0] = '⭐'; letters[3][0] = 'ONCE MORE'; letters[3][6] = 'ONCE MORE';
 
-// 建立格子
-const letters=Array(7).fill(0).map(()=>Array(7).fill(''));
-letters[0][0]='🍊';letters[6][6]='🍊'; letters[0][1]='🛎️'; letters[6][5]='🛎️';
-letters[0][2]='🍒'; letters[0][5]='🍒'; letters[2][6]='🍒'; letters[5][6]='🍒';
-letters[6][4]='🍒';letters[6][1]='🍒'; letters[4][0]='🍒'; letters[1][0]='🍒';
-letters[0][3]='🀄'; letters[0][4]='🍎'; letters[2][0]='🍎'; letters[4][6]='🍎';
-letters[6][2]='🍎'; letters[0][6]='🥭'; letters[6][0]='🥭'; letters[1][6]='🍉';
-letters[6][3]='7️⃣'; letters[5][0]='⭐';letters[3][0]='ONCE MORE';letters[3][6]='ONCE MORE';
+let cells = [];
+for (let r = 0; r < 7; r++) {
+    for (let c = 0; c < 7; c++) {
+        const d = document.createElement('div');
+        d.className = 'cell';
+        d.dataset.letter = letters[r][c];
+        d.textContent = letters[r][c];
+        
+        // 樣式微調邏輯
+        if (['🍊', '🛎️', '🍒', '🍎', '🥭', '🍉', '⭐', '🀄'].includes(letters[r][c])) {
+            d.style.fontSize = '30px';
+        } else if (letters[r][c] === '7️⃣') {
+            d.style.fontSize = '28px';
+        } else if (letters[r][c] === 'ONCE MORE') {
+            d.classList.add('cell-once-more'); // 使用 CSS 定義的 5px 位移
+        }
 
-let cells=[]; 
-for(let r=0;r<7;r++){
-  for(let c=0;c<7;c++){
-    const d=document.createElement('div'); 
-    d.className='cell'; 
-    d.dataset.letter=letters[r][c]; 
-    d.textContent=letters[r][c];
-    if(['🍊','🛎️','🍒','🍎','🥭','🍉','⭐','🀄'].includes(letters[r][c])) d.style.fontSize='32px';
-    if(letters[r][c]==='7️⃣') d.style.fontSize='30px';
-    if(letters[r][c]==='ONCE MORE') { 
-      d.style.fontSize='12px'; 
-      d.style.paddingLeft='2px'; 
+        const l = document.createElement('div');
+        l.className = 'light';
+        if (r >= 1 && r <= 5 && c >= 1 && c <= 5) {
+            d.dataset.center = 'true';
+            d.style.border = '1px solid #fff';
+            l.style.background = '#fff';
+        } else { l.style.background = '#bbb'; }
+        d.appendChild(l);
+        grid.appendChild(d);
+        cells.push({ el: d });
     }
-    const l=document.createElement('div'); 
-    l.className='light';
-    if(r>=1 && r<=5 && c>=1 && c<=5){
-        d.dataset.center='true';
-        d.style.border='1px solid #fff';
-        d.style.color='#fff';
-        l.style.background='#fff';
-    } else { l.style.background='#bbb'; }
-    d.appendChild(l); 
-    grid.appendChild(d); 
-    cells.push({el:d});
-  }
 }
 
-let order=[]; for(let c=0;c<7;c++) order.push(cells[c]); for(let r=1;r<6;r++) order.push(cells[r*7+6]); for(let c=6;c>=0;c--) order.push(cells[6*7+c]); for(let r=5;r>0;r--) order.push(cells[r*7]);
+let order = [];
+for (let c = 0; c < 7; c++) order.push(cells[c]);
+for (let r = 1; r < 6; r++) order.push(cells[r * 7 + 6]);
+for (let c = 6; c >= 0; c--) order.push(cells[6 * 7 + c]);
+for (let r = 5; r > 0; r--) order.push(cells[r * 7]);
 
-const buttonConfig=[{ch:'🍎',mult:5},{ch:'🍉',mult:20},{ch:'⭐',mult:30},{ch:'7️⃣',mult:40},{ch:'🀄',mult:50},{ch:'🛎️',mult:20},{ch:'🥭',mult:15},{ch:'🍊',mult:10},{ch:'🍒',mult:2}];
-const betBox=document.getElementById('bets');
-buttonConfig.forEach(cfg=>{
-  bets[cfg.ch]=0; betCounts[cfg.ch]=0;
-  const wrap=document.createElement('div'); wrap.className='bet';
-  const fixed=document.createElement('div'); fixed.className='fixed-number'; fixed.textContent=cfg.mult;
-  const btn=document.createElement('button'); btn.textContent=cfg.ch;
-  const count=document.createElement('div'); count.className='count'; count.textContent='0';
-  btn.onclick=()=>{ 
-    clearMsg();
-    if(spinning) return;
-    if(betCounts[cfg.ch]>=9) return; 
-    if(credit <= 0){ msg.style.color = '#f00'; msg.textContent = '請先投幣或將獎金轉到錢包'; return; }
-    betCounts[cfg.ch]++; bets[cfg.ch]++; credit--; count.textContent=betCounts[cfg.ch]; updateDigits('credit-digits', credit);
-    playCoin();
-    win += centerWin; updateDigits('win-digits', win);
-    if(flashingInterval){ clearInterval(flashingInterval); flashingInterval = null; document.getElementById('center-left-light').style.background = '#bbb'; document.getElementById('center-right-light').style.background = '#bbb'; }
-    centerWin = 0; updateDigits('center-win-digits', centerWin);
-  };
-  wrap.append(fixed,btn,count); betBox.appendChild(wrap);
+const buttonConfig = [{ ch: '🍎', mult: 5 }, { ch: '🍉', mult: 20 }, { ch: '⭐', mult: 30 }, { ch: '7️⃣', mult: 40 }, { ch: '🀄', mult: 50 }, { ch: '🛎️', mult: 20 }, { ch: '🥭', mult: 15 }, { ch: '🍊', mult: 10 }, { ch: '🍒', mult: 2 }];
+
+const betBox = document.getElementById('bets');
+buttonConfig.forEach(cfg => {
+    bets[cfg.ch] = 0; betCounts[cfg.ch] = 0;
+    const wrap = document.createElement('div'); wrap.className = 'bet';
+    wrap.innerHTML = `<div class="fixed-number">${cfg.mult}</div><button>${cfg.ch}</button><div class="count">0</div>`;
+    const btn = wrap.querySelector('button');
+    const countDiv = wrap.querySelector('.count');
+    btn.onclick = () => {
+        clearMsg();
+        if (spinning) return;
+        if (betCounts[cfg.ch] >= 9) return;
+        if (credit <= 0) { msg.style.color = '#f00'; msg.textContent = '請先投幣'; return; }
+        betCounts[cfg.ch]++; bets[cfg.ch]++; credit--;
+        countDiv.textContent = betCounts[cfg.ch];
+        updateDigits('credit-digits', credit);
+        playCoin();
+        win += centerWin; updateDigits('win-digits', win);
+        if (flashingInterval) {
+            clearInterval(flashingInterval); flashingInterval = null;
+            document.getElementById('center-left-light').style.background = '#bbb';
+            document.getElementById('center-right-light').style.background = '#bbb';
+        }
+        centerWin = 0; updateDigits('center-win-digits', centerWin);
+    };
+    betBox.appendChild(wrap);
 });
 
-// 投幣按鈕修改：點擊一次禁用
-func1Btn.onclick = () => { 
-  clearMsg(); 
-  credit += 100; 
-  updateDigits('credit-digits', credit); 
-  playCoin(); 
-  func1Btn.disabled = true; 
-  
-};
+func1Btn.onclick = () => { clearMsg(); credit += 100; updateDigits('credit-digits', credit); playCoin(); func1Btn.disabled = true; };
+document.getElementById('func2').onclick = () => { clearMsg(); credit += win; win = 0; updateDigits('credit-digits', credit); updateDigits('win-digits', win); };
 
-document.getElementById('func2').onclick = () => { 
-  clearMsg(); 
-  credit += win; win=0; 
-  updateDigits('credit-digits', credit); 
-  updateDigits('win-digits', win); 
-};
-
-function enableFunc1IfZero(){
-  if(win === 0 && credit === 0 && centerWin === 0 && Object.values(betCounts).every(v => v===0)){
-    func1Btn.disabled = false;
-  
-  }
+function enableFunc1IfZero() {
+    if (win === 0 && credit === 0 && centerWin === 0 && Object.values(betCounts).every(v => v === 0)) func1Btn.disabled = false;
 }
 
-function spin(){
-  if(spinning) return;
-  spinning=true;
-  const minDelay=50; const maxDelay=300;
-  const totalSteps = order.length*4 + Math.floor(Math.random()*order.length);
-  let step=0; 
-  const accelSteps = totalSteps*0.25; 
-  const decelSteps = totalSteps*0.25;
-
-  function nextStep(){
-    order.forEach((o,idx)=>{
-      const l=o.el.querySelector('.light');
-      if(o.el.dataset.center) l.style.background='#fff';
-      else l.style.background=idx===pos?'#f00':'#bbb';
-    });
-    playCoin();
-    step++;
-    if(step>=totalSteps){
-      const stop = order[pos];
-      const letter = stop.el.dataset.letter;
-
-      if(letter === 'ONCE MORE'){
-        spinning = false;
-        setTimeout(() => { spin(); }, 1500);
-        return;
-      }
-
-      const cfg = buttonConfig.find(b=>b.ch===letter);
-      const gain = cfg?bets[letter]*cfg.mult:0;
-
-      if(gain>0){
-        centerWin = gain; updateDigits('center-win-digits', centerWin);
-        msg.style.color='#f00'; 
-        msg.style.whiteSpace = "pre-line";
-        msg.textContent=`押中${letter} 獎金${gain}元\n可選左右邊,獎金加倍`;
-
-        const leftLight = document.getElementById('center-left-light');
-        const rightLight = document.getElementById('center-right-light');
-        let onLeft = true;
-        flashingInterval = setInterval(()=>{
-          playCoin();
-          if(onLeft){ leftLight.style.background='#f00'; rightLight.style.background='#bbb'; }
-          else { leftLight.style.background='#bbb'; rightLight.style.background='#f00'; }
-          onLeft = !onLeft;
-        }, 300);
-
-      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent='沒有押中'; }
-
-      document.querySelectorAll('.count').forEach(c=>c.textContent='0'); 
-      for(let k in bets){bets[k]=0; betCounts[k]=0;} 
-      document.getElementById('start').disabled = true;
-      setTimeout(()=>{document.getElementById('start').disabled=false; enableFunc1IfZero();},5000);
-      spinning=false;
-      return;
+function spin() {
+    if (spinning) return;
+    spinning = true;
+    const totalSteps = order.length * 4 + Math.floor(Math.random() * order.length);
+    let step = 0;
+    function nextStep() {
+        order.forEach((o, idx) => {
+            const l = o.el.querySelector('.light');
+            if (!o.el.dataset.center) l.style.background = idx === pos ? '#f00' : '#bbb';
+        });
+        playCoin();
+        step++;
+        if (step >= totalSteps) {
+            const stop = order[pos];
+            const letter = stop.el.dataset.letter;
+            if (letter === 'ONCE MORE') { spinning = false; setTimeout(spin, 1500); return; }
+            const cfg = buttonConfig.find(b => b.ch === letter);
+            const gain = cfg ? bets[letter] * cfg.mult : 0;
+            if (gain > 0) {
+                centerWin = gain; updateDigits('center-win-digits', centerWin);
+                msg.style.color = '#f00'; msg.textContent = `押中${letter} 獎金${gain}\n可選左右加倍`;
+                let onLeft = true;
+                flashingInterval = setInterval(() => {
+                    playCoin();
+                    document.getElementById('center-left-light').style.background = onLeft ? '#f00' : '#bbb';
+                    document.getElementById('center-right-light').style.background = onLeft ? '#bbb' : '#f00';
+                    onLeft = !onLeft;
+                }, 300);
+            } else {
+                centerWin = 0; updateDigits('center-win-digits', centerWin);
+                msg.style.color = '#f00'; msg.textContent = '沒有押中';
+            }
+            document.querySelectorAll('.count').forEach(c => c.textContent = '0');
+            for (let k in bets) { bets[k] = 0; betCounts[k] = 0; }
+            document.getElementById('start').disabled = true;
+            setTimeout(() => { document.getElementById('start').disabled = false; enableFunc1IfZero(); }, 5000);
+            spinning = false; return;
+        }
+        pos = (pos + 1) % order.length;
+        let delay = step < totalSteps * 0.25 ? 300 - (250 * (step / (totalSteps * 0.25))) : (step > totalSteps * 0.75 ? 50 + (250 * ((step - totalSteps * 0.75) / (totalSteps * 0.25))) : 50);
+        setTimeout(nextStep, delay);
     }
-
-    let currentDelay;
-    if(step<accelSteps){ currentDelay = maxDelay - (maxDelay-minDelay)*(step/accelSteps); } 
-    else if(step>totalSteps-decelSteps){ const s = step-(totalSteps-decelSteps); currentDelay = minDelay + (maxDelay-minDelay)*(s/decelSteps); } 
-    else { currentDelay = minDelay; }
-
-    pos = (pos+1)%order.length;
-    setTimeout(nextStep,currentDelay);
-  }
-  nextStep();
+    nextStep();
 }
 
 document.getElementById('cancel').onclick = () => {
-    clearMsg();
-    if(centerWin > 0){
-        win += centerWin; 
-        updateDigits('win-digits', win);
-        centerWin = 0; 
-        updateDigits('center-win-digits', centerWin);
-        if(flashingInterval){ 
-            clearInterval(flashingInterval); 
-            flashingInterval = null; 
-            document.getElementById('center-left-light').style.background = '#bbb'; 
-            document.getElementById('center-right-light').style.background = '#bbb'; 
-        }
-        msg.style.color = '#f00';
-        msg.textContent = '已放棄選邊贏雙倍獎金';
-        enableFunc1IfZero();
+    if (centerWin > 0) {
+        win += centerWin; updateDigits('win-digits', win);
+        centerWin = 0; updateDigits('center-win-digits', centerWin);
+        if (flashingInterval) { clearInterval(flashingInterval); flashingInterval = null; }
+        document.getElementById('center-left-light').style.background = '#bbb';
+        document.getElementById('center-right-light').style.background = '#bbb';
+        msg.textContent = '已收回獎金'; enableFunc1IfZero();
     }
-};  
-  
-
-document.getElementById('start').onclick = () => { 
-  clearMsg();
-  if(spinning) return; 
-  if(Object.values(bets).every(v => v === 0)){
-    msg.style.color = '#f00';
-    msg.textContent = '請先押注';
-    return;
-  }
-  spin(); 
 };
 
-function stopFlashing(selected){
-  if(!flashingInterval) return;
-  clearInterval(flashingInterval);
-  flashingInterval=null;
+document.getElementById('start').onclick = () => {
+    if (spinning) return;
+    if (Object.values(bets).every(v => v === 0)) { msg.textContent = '請先押注'; return; }
+    clearMsg(); spin();
+};
 
-  const leftLight = document.getElementById('center-left-light');
-  const rightLight = document.getElementById('center-right-light');
-
-  let finalSide = Math.random()<0.5?'left':'right';
-  let steps = 6;
-  let count=0;
-
-  function slowStep(){
-    if(count>=steps){
-      leftLight.style.background = finalSide==='left'?'#f00':'#bbb';
-      rightLight.style.background = finalSide==='right'?'#f00':'#bbb';
-
-      if(finalSide===selected){
-        centerWin *=2;
-        updateDigits('center-win-digits', centerWin);
-        msg.style.color='#f00';
-        msg.textContent=`恭喜你! 獎金 x2`;
-
-        let onLeft = true;
-        flashingInterval = setInterval(()=>{
-          playCoin();
-          if(onLeft){ leftLight.style.background='#f00'; rightLight.style.background='#bbb'; }
-          else { leftLight.style.background='#bbb'; rightLight.style.background='#f00'; }
-          onLeft = !onLeft;
-        }, 300);
-
-      } else { centerWin=0; updateDigits('center-win-digits', centerWin); msg.style.color='#f00'; msg.textContent=`選錯邊了, 獎金歸零`; }
-
-      enableFunc1IfZero();
-      return;
+function stopFlashing(selected) {
+    if (!flashingInterval) return;
+    clearInterval(flashingInterval); flashingInterval = null;
+    let finalSide = Math.random() < 0.5 ? 'left' : 'right';
+    let count = 0;
+    function slowStep() {
+        if (count >= 6) {
+            document.getElementById('center-left-light').style.background = finalSide === 'left' ? '#f00' : '#bbb';
+            document.getElementById('center-right-light').style.background = finalSide === 'right' ? '#f00' : '#bbb';
+            if (finalSide === selected) {
+                centerWin *= 2; updateDigits('center-win-digits', centerWin);
+                msg.textContent = `恭喜! 獎金 x2`;
+                let onLeft = true;
+                flashingInterval = setInterval(() => {
+                    playCoin();
+                    document.getElementById('center-left-light').style.background = onLeft ? '#f00' : '#bbb';
+                    document.getElementById('center-right-light').style.background = onLeft ? '#bbb' : '#f00';
+                    onLeft = !onLeft;
+                }, 300);
+            } else { centerWin = 0; updateDigits('center-win-digits', 0); msg.textContent = `可惜歸零`; }
+            enableFunc1IfZero(); return;
+        }
+        document.getElementById('center-left-light').style.background = count % 2 === 0 ? '#f00' : '#bbb';
+        document.getElementById('center-right-light').style.background = count % 2 === 0 ? '#bbb' : '#f00';
+        playCoin(); count++; setTimeout(slowStep, 200);
     }
-    if(count%2===0){ leftLight.style.background='#f00'; rightLight.style.background='#bbb'; }
-    else{ leftLight.style.background='#bbb'; rightLight.style.background='#f00'; }
-    playCoin();
-    count++;
-    setTimeout(slowStep,200);
-  }
-  slowStep();
+    slowStep();
 }
 
-document.getElementById('func3').onclick=()=>{ clearMsg(); stopFlashing('left'); }
-document.getElementById('func4').onclick=()=>{ clearMsg(); stopFlashing('right'); }
-//版權宣告 : 程式可以免費使用, 但不能有營利的用途 Nathan
+document.getElementById('func3').onclick = () => stopFlashing('left');
+document.getElementById('func4').onclick = () => stopFlashing('right');
 </script>
 
 </body>
