@@ -17,7 +17,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 20px; /* 縮小上下內距以容納多行字 */
+    padding: 10px 20px;
     background: rgba(255,255,255,0.85);
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     position: fixed;
@@ -30,25 +30,22 @@ header h1 {
     margin: 0;
     text-align: left;
     display: flex;
-    flex-direction: column; /* 改為垂直排列 */
+    flex-direction: column;
     gap: 2px;
 }
 
-/* 第一排：深灰大字 */
 .title-main {
     font-size: 26px;
     color: #333333;
     font-weight: 700;
 }
 
-/* 第二排：淺灰小字 */
 .title-sub {
     font-size: 15px;
     color: #777777;
     font-weight: 500;
 }
 
-/* 第三排：極細淺淺灰 */
 .title-desc {
     font-size: 12px;
     color: #aaaaaa;
@@ -58,11 +55,11 @@ header h1 {
 
 header nav {
     display: flex;
-    gap: 10px;
+    gap: 15px; /* 稍微增加間距 */
     align-items: center;
     justify-content: flex-end;
     flex-shrink: 0;
-    padding-right: 60px;
+    padding-right: 40px; /* 減少右邊距讓空間更充裕 */
 }
 
 header nav a {
@@ -72,6 +69,7 @@ header nav a {
     cursor: pointer;
     transition: color 0.3s;
     font-size: 14px;
+    white-space: nowrap;
 }
 
 header nav a:hover {
@@ -82,29 +80,19 @@ header nav a:hover {
     position: relative;
     width: 100vw;
     height: 80vh;
-    margin-top: 100px; /* 增加頂部間距，避免泡泡被加高的 header 擋住 */
+    margin-top: 100px;
 }
 
+/* 泡泡相關樣式保持不變... */
 .bubble {
     position: absolute;
     width: 110px;
     height: 110px;
     border-radius: 50%;
-    background:
-        radial-gradient(circle at 35% 30%,
-            rgba(255,255,255,0.5),
-            rgba(255,255,255,0.25) 25%,
-            rgba(255,255,255,0.12) 45%,
-            rgba(255,255,255,0.04) 60%,
-            rgba(255,255,255,0.12) 78%,
-            rgba(255,255,255,0.2) 100%
-        );
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.5), rgba(255,255,255,0.25) 25%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.04) 60%, rgba(255,255,255,0.12) 78%, rgba(255,255,255,0.2) 100%);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    box-shadow:
-        inset -10px -10px 25px rgba(255,255,255,0.4),
-        inset 10px 10px 25px rgba(0,0,0,0.1),
-        0 0 15px rgba(0,0,0,0.05);
+    box-shadow: inset -10px -10px 25px rgba(255,255,255,0.4), inset 10px 10px 25px rgba(0,0,0,0.1), 0 0 15px rgba(0,0,0,0.05);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -117,18 +105,8 @@ header nav a:hover {
     font-size: 14px;
 }
 
-.bubble:hover {
-    opacity: 1;
-    z-index: 10;
-}
-
-.bubble span.date {
-    display: block;
-    font-size: 11px;
-    font-weight: 300;
-    opacity: 0.7;
-    margin-top: 2px;
-}
+.bubble:hover { opacity: 1; z-index: 10; }
+.bubble span.date { display: block; font-size: 11px; font-weight: 300; opacity: 0.7; margin-top: 2px; }
 
 footer {
     position: fixed;
@@ -171,11 +149,12 @@ footer {
             <span class="title-main">AIsoftware</span>
             <span class="title-sub">AI生成小遊戲</span>
         </div>
-        <span class="title-desc">此網站內容都是由Generative AI產生代碼，都是一些可以直接在網頁執行的小遊戲及軟體，像撲克牌、麻將、賽車...等，不用下載及要求安裝任何軟體</span>
+        <span class="title-desc">此網站內容都是由Generative AI產生代碼，都是一些可直接在網頁執行的小遊戲及軟體，不用下載任何軟體</span>
     </h1>
     <nav>
         <a id="aboutBtn">About Us</a>
         <a id="aboutUsBtn">關於我們</a>
+        <a href="https://aisoftware2035.blogspot.com/" target="_blank">留言討論</a>
         <a id="sitemapBtn" href="sitemap_index.html">網站導覽</a>
     </nav>
 </header>
@@ -196,13 +175,13 @@ This is an AI-generated website. All code was generated using the free version o
 </footer>
 
 <script>
+// JavaScript 部分保持與之前相同
 const bubbleData = [
     { name: "賽豬遊戲", link: "data/horseracing/horseracing.html", date: "2025/12/12" },
     { name: "小瑪莉機台", link: "data/betgame/betgame.html", date: "2025/12/17" },
     { name: "新德州撲克", link: "data/New Texas holdem/New Texas holdem.html", date: "2025/12/19" },
     { name: "簡單賽車遊戲", link: "data/racing/racing.html", date: "2025/12/21" },
-    { name: "台灣麻將對戰", link: "data/Mahjong/Mahjong.html", date: "2025/12/27" },
-    { name: "未來", link: "#" },
+    { name: "台灣麻將對戰", link: "data/Mahjong/Mahjong.html", date: "2025/12/26" },
     { name: "未來", link: "#" },
     { name: "未來", link: "#" },
     { name: "未來", link: "#" },
