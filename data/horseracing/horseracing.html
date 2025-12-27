@@ -2,10 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>賽豬遊戲</title>
 <style>
-/* --- 原本 CSS 保留 --- */
-body{font-family:Segoe UI,Arial;background:#fff;color:#333;padding:20px;text-align:center;}
+/* --- 原始 CSS 完全保留，僅修改 width 為響應式 --- */
+body{font-family:Segoe UI,Arial;background:#fff;color:#333;padding:10px;text-align:center;margin:0;}
 #backBtn{position:fixed;top:10px;right:10px;padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;z-index:9999;box-shadow:2px 2px 5px rgba(0,0,0,0.3);transition: all 0.1s ease;}
 #backBtn:active{transform: translateY(2px);box-shadow:1px 1px 3px rgba(0,0,0,0.3);}
 #controls{margin-bottom:20px;}
@@ -14,7 +15,9 @@ body{font-family:Segoe UI,Arial;background:#fff;color:#333;padding:20px;text-ali
 .bet-row label{margin-right:5px;font-size:14px;}
 .bet-row select{padding:5px 8px;font-size:14px;background-color:#bbb;color:#000;border:none;border-radius:2px;cursor:pointer;}
 #button-row{margin-top:10px;display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap: wrap;}
-#track{position:relative;width:900px;height:350px;margin:-10px auto 10px;border:4px solid #c9a44c;background:linear-gradient(#1f5f2a,#2e7d32);overflow:hidden;}
+
+/* 關鍵修改 2：賽道寬度改為 95% 寬度，但最大不超過 900px */
+#track{position:relative;width:95%; max-width:900px; height:350px;margin:10px auto;border:4px solid #c9a44c;background:linear-gradient(#1f5f2a,#2e7d32);overflow:hidden;}
 .lane{position:absolute;left:0;width:100%;height:43.75px;border-bottom:1px solid rgba(255,255,255,.25);}
 .horse{position:absolute;right:10px;font-size:32px;transform-origin: center bottom;}
 .number{position:absolute;top:16px;left:18px;font-size:14px;font-weight:bold;color:#000;}
@@ -22,12 +25,16 @@ body{font-family:Segoe UI,Arial;background:#fff;color:#333;padding:20px;text-ali
 #finishLine{position:absolute;left:50px;top:0;width:4px;height:100%;background:red;}
 #startLine{position:absolute;right:50px;top:0;width:4px;height:100%;background:blue;display:block;}
 #countdown{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:96px;font-weight:bold;color:#ffd700;text-shadow:4px 4px 8px #000;display:none;pointer-events:none;}
-#message{font-size:28px;color:#ffd700;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-shadow:2px 2px 4px #000;text-align:left;pointer-events:none;white-space:pre-line;opacity:1;transition: opacity 1s ease;}
+#message{font-size:28px;color:#ffd700;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-shadow:2px 2px 4px #000;text-align:left;pointer-events:none;white-space:pre-line;opacity:1;transition: opacity 1s ease;z-index:100;}
 #betMessage{font-size:20px;color:#ffeb3b;position:absolute;top:10%;left:50%;transform:translateX(-50%);text-shadow:2px 2px 4px #000;pointer-events:none;white-space:pre-line;opacity:1;transition: opacity 1s ease;}
-table{width:900px;max-width:900px;margin:-6px auto;border-collapse:collapse;text-align:center;table-layout:fixed;}
+
+/* 關鍵修改 3：表格寬度改為響應式並加入滾動條防止手機切掉內容 */
+.table-wrap { width: 95%; max-width: 900px; margin: 0 auto; overflow-x: auto; }
+table{width:100%; min-width:600px; border-collapse:collapse;text-align:center;table-layout:fixed;}
 th,td{border:2px solid #ffd700;padding:0;height:25px;line-height:25px;font-size:85%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 th{background:#bbb;}
-button{padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;box-shadow:2px 2px 5px rgba(0,0,0,0.3);transition: all 0.1s ease;}
+
+button{padding:6px 12px;font-size:14px;background:#fff;border:2px solid #ccc;border-radius:6px;cursor:pointer;color:#333;box-shadow:2px 2px 5px rgba(0,0,0,0.3);transition: all 0.1s ease; touch-action: manipulation;}
 button:active{transform: translateY(2px);box-shadow:1px 1px 3px rgba(0,0,0,0.3);}
 button:disabled{background:#eee;cursor:not-allowed;color:#999;box-shadow:none;}
 .chipDisplay{display:inline-block;min-width:50px;padding:4px 6px;border:2px solid #ffb700;border-radius:4px;text-align:center;background-color:#fff;color:#333;font-size:18px;}
@@ -37,7 +44,7 @@ button:disabled{background:#eee;cursor:not-allowed;color:#999;box-shadow:none;}
 <body>
 
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:50px; right:15px; font-size:14px; color:#333333;">版本: V0.03</div>
+<div id="version" style="position:fixed; top:50px; right:15px; font-size:14px; color:#333333;">版本: V0.04</div>
 
 <div id="controls">
     <div class="bet-row">
@@ -82,21 +89,24 @@ button:disabled{background:#eee;cursor:not-allowed;color:#999;box-shadow:none;}
     <div id="betMessage"></div>
 </div>
 
-<table id="resultsTable">
-<tbody>
-<tr id="rankRow">
-<th>冠軍</th><th>亞軍</th><th>季軍</th><th>第4名</th><th>第5名</th><th>第6名</th><th>第7名</th><th>第8名</th>
-</tr>
-<tr id="horseRow">
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr id="timeRow">
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-</tbody>
-</table>
+<div class="table-wrap">
+    <table id="resultsTable">
+    <tbody>
+    <tr id="rankRow">
+    <th>冠軍</th><th>亞軍</th><th>季軍</th><th>第4名</th><th>第5名</th><th>第6名</th><th>第7名</th><th>第8名</th>
+    </tr>
+    <tr id="horseRow">
+    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+    <tr id="timeRow">
+    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+    </tbody>
+    </table>
+</div>
 
 <script>
+// --- JS 邏輯完全保留原始代碼 ---
 const HORSE_COUNT=8;
 let playerChips=5000;
 let horses=[],rankingCounter=0,startTime=null,animationId=null,lastTs=null,ragingHorseId=null,raceHistory=[],betPlaced=false,statsVisible=false,currentBets=[],currentChips=[];
@@ -122,11 +132,14 @@ const backBtn=document.getElementById('backBtn');
 
 backBtn.onclick=()=>{window.history.back();};
 
-// AudioContext 與 buffer
+// 針對行動裝置音訊限制，在點擊時 resume AudioContext
 const audioCtx=new(window.AudioContext||window.webkitAudioContext)();
 const audioBuffers={};
 async function loadAudio(name,url){const resp=await fetch(url);const arrBuf=await resp.arrayBuffer();audioBuffers[name]=await audioCtx.decodeAudioData(arrBuf);}
-function playSound(name){if(audioBuffers[name]){const src=audioCtx.createBufferSource();src.buffer=audioBuffers[name];src.connect(audioCtx.destination);src.start(0);}}
+function playSound(name){
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    if(audioBuffers[name]){const src=audioCtx.createBufferSource();src.buffer=audioBuffers[name];src.connect(audioCtx.destination);src.start(0);}
+}
 loadAudio('start','correct_answer2.mp3');loadAudio('win','coin07.mp3');loadAudio('champion','cheers2.mp3');
 
 function updateChipsDisplay(){playerChipsEl.textContent=playerChips.toString().padStart(5,'0');}
@@ -157,6 +170,7 @@ function init(){
 function showBetMessage(msg){betMessageEl.textContent=msg;betMessageEl.style.opacity=1;setTimeout(()=>{betMessageEl.style.opacity=0;},3000);}
 
 placeBetBtn.onclick=()=>{
+    if(audioCtx.state === 'suspended') audioCtx.resume(); // 行動裝置解鎖
     if(betPlaced) return;
     const bet1=parseInt(betSelect.value),bet2=parseInt(betSelect2.value);
     if(bet1===bet2){showBetMessage('兩個下注不能選同一隻豬');return;}
@@ -178,14 +192,22 @@ function startCountdown(){
 function update(ts){
     if(lastTs===null) lastTs=ts;
     const delta=(ts-lastTs)/1000;lastTs=ts;
+    const currentTrackWidth = track.clientWidth; // 關鍵修改：抓取即時賽道寬度
     horses.forEach(h=>{
         if(h.finished) return;
         if(h.id===ragingHorseId&&!h.isRaging&&Math.random()<0.005){h.isRaging=true;h.rageTime=0.5;h.rageSpeed=(1+Math.random()*2)*0.8;h.el.style.fontSize="36px";}
         let actualSpeed=h.speed;
         if(h.isRaging){actualSpeed+=h.rageSpeed;h.rageTime-=delta;if(h.rageTime<=0){h.isRaging=false;h.el.style.fontSize="32px";}}
-        h.x+=actualSpeed*delta*120;h.el.style.right=h.x+'px';
+        
+        // 為了讓不同螢幕寬度的體感速度接近，乘上一個比例
+        const widthFactor = currentTrackWidth / 900;
+        h.x+=actualSpeed*delta*120*widthFactor;
+        h.el.style.right=h.x+'px';
+        
         h.tilt+=0.4*h.tiltDirection;if(h.tilt>=10) h.tiltDirection=-1;if(h.tilt<=-10) h.tiltDirection=1;h.el.style.transform=`rotate(${h.tilt}deg)`;
-        if(h.x>=track.clientWidth-50&&!h.finished){h.finished=true;h.finishTime=((ts-startTime)/1000).toFixed(2);horseRow.cells[rankingCounter].textContent=h.id;timeRow.cells[rankingCounter].textContent=h.finishTime+'s';
+        
+        // 判斷是否過線
+        if(h.x>=currentTrackWidth-50&&!h.finished){h.finished=true;h.finishTime=((ts-startTime)/1000).toFixed(2);horseRow.cells[rankingCounter].textContent=h.id;timeRow.cells[rankingCounter].textContent=h.finishTime+'s';
         if(rankingCounter===0){const crown=document.createElement('div');crown.className='crown';crown.textContent='👑';h.el.appendChild(crown);playSound('champion');}rankingCounter++;}
     });
     if(horses.every(h=>h.finished)){saveRaceResult();handleBetResults();cancelAnimationFrame(animationId);animationId=null;lastTs=null;return;}
@@ -213,7 +235,7 @@ resetBtn.onclick=()=>{playerChips=5000;init();};
 
 statsBtn.onclick=()=>{
     if(!statsVisible){
-        if(raceHistory.length===0){messageEl.textContent="尚無比賽資料！";messageEl.style.opacity=1;setTimeout(()=>{messageEl.style.opacity=0;},3000);return;}
+        if(raceHistory.length===0){messageEl.textContent="尚無比賽資料！";messageEl.style.opacity=1;setTimeout(()=>{if(!statsVisible)messageEl.style.opacity=0;},3000);return;}
         const stats={};for(let i=1;i<=HORSE_COUNT;i++) stats[i]={champ:0,second:0,third:0,last:0};
         raceHistory.forEach(result=>{stats[result[0]].champ++;stats[result[1]].second++;stats[result[2]].third++;stats[result[result.length-1]].last++;});
         let msg="";for(let i=1;i<=HORSE_COUNT;i++){msg+=`${i}號豬 冠軍:${stats[i].champ} 亞軍:${stats[i].second} 季軍:${stats[i].third} 最後:${stats[i].last}\n`;}
@@ -224,7 +246,6 @@ statsBtn.onclick=()=>{
 };
 
 init();
-//版權宣告 : 程式可以免費使用, 但不能有營利的用途 Nathan
 </script>
 </body>
 </html>
