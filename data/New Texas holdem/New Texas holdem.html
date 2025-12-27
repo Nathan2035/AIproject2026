@@ -2,49 +2,45 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>德州撲克對戰</title>
 <style>
-body { font-family: Arial; text-align: center; margin-top: 10px; background: transparent; color: white;}
-h1 { margin-bottom: 10px; color: #333333; }
+body { font-family: Arial; text-align: center; margin-top: 10px; background: white; color: #333; touch-action: manipulation; }
+h1 { margin-bottom: 10px; color: #333; font-size: 24px; }
 
 .card { 
-    width: 70px; height: 100px; border-radius: 8px; border: 1px solid #333;
+    width: 68px; height: 98px; border-radius: 8px; border: 1px solid #333;
     display: flex; align-items: center; justify-content: center; font-size: 24px;
-    background-color: white; color: black; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-    position: absolute;
-    z-index: 10;
-    cursor: pointer;
+    background-color: white; color: black; box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    position: absolute; z-index: 10; cursor: pointer;
+    -webkit-user-select: none; user-select: none;
 }
 .back { background-color: gray; color: gray; }
 .red { color: red; }
 
-#table-container { position: relative; margin: 20px auto; width: 750px; height: 400px; }
-#table { width: 100%; height: 100%; background: #228B22; border: 20px solid #8B4513; box-sizing: border-box; position: absolute; top: 0; left: 0; z-index: 1; border-radius: 200px / 50%; }
+#table-container { position: relative; margin: 20px auto; width: 95vw; max-width: 750px; height: 380px; }
+#table { width: 100%; height: 100%; background: #228B22; border: 18px solid #8B4513; box-sizing: border-box; position: absolute; top: 0; left: 0; z-index: 1; border-radius: 180px / 50%; }
 
-#messageResult { position:absolute; top:50%; left:15%; transform:translateY(-50%); font-size:28px; color:yellow; font-weight:bold; text-shadow:2px 2px 5px black; z-index:11; }
-#messageMary { position:absolute; top:37%; right:47%; font-size:24px; color:yellow; font-weight:bold; text-shadow:2px 2px 5px black; z-index:11; }
-#messagePlayer { position:absolute; bottom:37%; right:47%; font-size:24px; color:yellow; font-weight:bold; text-shadow:2px 2px 5px black; z-index:11; }
+#messageResult { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:26px; color:yellow; font-weight:bold; text-shadow:2px 2px 5px black; z-index:11; width: 100%; pointer-events: none; }
+#messageMary { position:absolute; top:36%; left:50%; transform:translateX(-50%); font-size:22px; color:yellow; font-weight:bold; text-shadow:2px 2px 5px black; z-index:11; }
+#messagePlayer { position:absolute; bottom:36%; left:50%; transform:translateX(-50%); font-size:22px; color:yellow; font-weight:bold; text-shadow:2px 2px 5px black; z-index:11; }
 
-button { padding: 4px 16px; font-size: 14px; margin: 10px; border-radius: 5px; cursor: pointer; background: linear-gradient(to bottom, #f0f0f0, #ccc); border: 1px solid #888; box-shadow: 2px 2px #dddddd; transition: all 0.1s ease-in-out; }
-button:active { box-shadow: 2px 2px #eeeeee; transform: translateY(2px); }
-button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+button { padding: 6px 14px; font-size: 14px; margin: 5px; border-radius: 5px; cursor: pointer; background: linear-gradient(to bottom, #f9f9f9, #ddd); border: 1px solid #999; box-shadow: 1px 1px 2px #ccc; }
+button:active { transform: translateY(1px); box-shadow: none; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-select { font-size: 16px; padding: 5px; margin-right: 5px; }
+select { font-size: 16px; padding: 5px; border-radius: 4px; }
 
-#betContainer { position: relative; z-index: 12; margin: 20px auto; color: #333333; }
-
-#backBtn{ position:fixed; top:10px; right:10px; padding:6px 12px; font-size:14px; background:#fff; border:2px solid #ccc; border-radius:6px; cursor:pointer; color:#333; z-index:9999; box-shadow: 2px 2px #dddddd; }
-#backBtn:active { box-shadow: 2px 2px #eeeeee; transform: translateY(2px); }
-
-#chipBox { display: inline-block; padding: 3px 3px; min-width: 30px; border: 1px solid #333; border-radius: 4px; margin-bottom: 2px; font-weight: bold; font-size:20px; color: #333; background-color: rgba(255,255,255,0.1); position: relative; text-align: center; }
-
-#warningMessage { font-size: 18px; color: red; font-weight: bold; position: absolute; left: 50%; transform: translateX(-50%); bottom: 82%; margin-bottom: 4px; white-space: nowrap; display: none; }
+#betContainer { position: relative; z-index: 12; margin: 15px auto; color: #333; font-weight: bold; }
+#chipBox { display: inline-block; padding: 3px 8px; min-width: 60px; border: 1px solid #333; border-radius: 4px; font-size:20px; color: #333; background: #eee; }
+#warningMessage { font-size: 18px; color: red; font-weight: bold; position: absolute; left: 50%; transform: translateX(-50%); bottom: 100%; white-space: nowrap; display: none; }
+#backBtn{ position:fixed; top:10px; right:10px; padding:6px 12px; font-size:14px; background:#fff; border:1px solid #ccc; border-radius:6px; color:#333; z-index:9999; }
 </style>
 </head>
 <body>
 
 <button id="backBtn">回到上一頁</button>
-<div id="version" style="position:fixed; top:60px; right:25px; font-size:14px; color:#333333;">版本: V0.06</div>
+<div id="version" style="position:fixed; top:60px; right:15px; font-size:12px; color:#666;">版本: V0.07</div>
 
 <h1>新德州撲克</h1>
 
@@ -60,8 +56,8 @@ select { font-size: 16px; padding: 5px; margin-right: 5px; }
 <div id="betContainer">
     <button id="addCoinBtn">投幣10元</button>
     籌碼: <div id="chipBox">00000</div>
-    <div id="warningMessage">錢不夠了</div>
-    下注金額:
+    <div id="warningMessage">請先選牌</div>
+    下注:
     <select id="betAmount">
         <option value="10">10</option>
         <option value="50">50</option>
@@ -82,18 +78,10 @@ let chips = 0, currentBet = 0, selectedCards = [], swapUsed = false, coinPressCo
 const maxCoinPress = 10;
 
 let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let coinBuffer = null;
-let dealingBuffer = null;
-let winBuffer = null;
-let loseBuffer = null;
+let coinBuffer, dealingBuffer, winBuffer, loseBuffer;
 
-// 載入音效
 function loadAudio(url, callback) {
-    fetch(url)
-        .then(r => r.arrayBuffer())
-        .then(buf => audioContext.decodeAudioData(buf))
-        .then(decoded => callback(decoded))
-        .catch(err => console.error("音效載入失敗", err));
+    fetch(url).then(r => r.arrayBuffer()).then(buf => audioContext.decodeAudioData(buf)).then(decoded => callback(decoded)).catch(e => console.log("音效載入略過"));
 }
 
 loadAudio('coin07.mp3', buf => coinBuffer = buf);
@@ -113,28 +101,31 @@ function playSound(buffer){
 function updateChipsDisplay(){document.getElementById("chipBox").textContent = String(chips).padStart(5,'0');}
 function showWarningMessage(msg){const w = document.getElementById("warningMessage"); w.textContent = msg; w.style.display = "block"; setTimeout(()=>{ w.style.display="none"; },3000);}
 
-// 投幣10元
-document.getElementById("addCoinBtn").addEventListener("click", ()=>{
-    if(coinPressCount >= maxCoinPress) return;
-    chips += 10;
-    coinPressCount++;
-    updateChipsDisplay();
-    playSound(coinBuffer);
-    if(coinPressCount >= maxCoinPress){
-        document.getElementById("addCoinBtn").disabled = true;
-    }
-});
+function getMultiplier(score) {
+    if(score === 10) return 50; // 皇家同花順
+    if(score === 9)  return 20; // 同花順
+    if(score === 8)  return 10; // 四條
+    if(score === 7)  return 5;  // 葫蘆
+    if(score === 6)  return 4;  // 同花
+    if(score === 5)  return 3;  // 順子
+    if(score === 4)  return 2;  // 三條
+    if(score === 3)  return 1.5; // 兩對
+    return 1; // 一對或高牌
+}
 
 const suits=["♠","♥","♦","♣"], values=["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+const sortOrder=["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+
 function createDeck(){let deck=[];for(let s of suits){for(let v of values){deck.push({value:v,suit:s});}}return deck;}
 function drawCards(deck,count){let hand=[];for(let i=0;i<count;i++){let idx=Math.floor(Math.random()*deck.length);hand.push(deck.splice(idx,1)[0]);}return hand;}
 function cardValue(c){if(c.value==="J")return 11;if(c.value==="Q")return 12;if(c.value==="K")return 13;if(c.value==="A")return 14;return parseInt(c.value);}
 function valueToFace(val){if(val===14)return "A";if(val===13)return "K";if(val===12)return "Q";if(val===11)return "J";return val.toString();}
+
 function evaluateHand(hand){
     let vals=hand.map(c=>cardValue(c)).sort((a,b)=>a-b), suitsArr=hand.map(c=>c.suit), counts={};
     vals.forEach(v=>counts[v]=(counts[v]||0)+1);
     let isFlush=suitsArr.every(s=>s===suitsArr[0]), isStraight=vals[4]-vals[0]===4&&new Set(vals).size===5;
-    let score=0,tiebreaker=[],handName="";
+    let score=1, handName="";
     let countVals=Object.entries(counts).sort((a,b)=>{if(b[1]===a[1])return b[0]-a[0];return b[1]-a[1];}).map(x=>parseInt(x[0]));
     if(isFlush && isStraight && vals[4]===14){score=10;handName="皇家同花順";}
     else if(isFlush && isStraight){score=9;handName="同花順";}
@@ -146,142 +137,129 @@ function evaluateHand(hand){
     else if(Object.values(counts).filter(x=>x===2).length===2){score=3;handName="兩對";}
     else if(Object.values(counts).includes(2)){score=2;let pairVal=Object.entries(counts).find(([k,v])=>v===2)[0];handName="一對 "+valueToFace(parseInt(pairVal));}
     else{score=1;let maxVal=Math.max(...vals);let maxCard=hand.find(c=>cardValue(c)===maxVal);handName="最大 "+valueToFace(maxVal)+maxCard.suit;}
-    tiebreaker=countVals.slice(); return {score,tiebreaker,handName};
+    return {score, tiebreaker:countVals, handName};
 }
-function compareHands(h1,h2){let a=evaluateHand(h1),b=evaluateHand(h2);if(a.score>b.score)return {result:1,hand1Name:a.handName,hand2Name:b.handName}; if(a.score<b.score)return {result:-1,hand1Name:a.handName,hand2Name:b.handName}; for(let i=0;i<a.tiebreaker.length;i++){if(a.tiebreaker[i]>b.tiebreaker[i])return {result:1,hand1Name:a.handName,hand2Name:b.handName}; if(a.tiebreaker[i]<b.tiebreaker[i])return {result:-1,hand1Name:a.handName,hand2Name:b.handName};} return {result:0,hand1Name:a.handName,hand2Name:b.handName};}
 
-const playerPositions=[{top:"260px",left:"170px"},{top:"260px",left:"250px"},{top:"260px",left:"330px"},{top:"260px",left:"410px"},{top:"260px",left:"490px"}];
-const computerPositions=[{top:"40px",left:"170px"},{top:"40px",left:"250px"},{top:"40px",left:"330px"},{top:"40px",left:"410px"},{top:"40px",left:"490px"}];
+function compareHands(h1,h2){
+    let a=evaluateHand(h1), b=evaluateHand(h2);
+    if(a.score>b.score)return {result:1, a, b}; 
+    if(a.score<b.score)return {result:-1, a, b};
+    for(let i=0;i<a.tiebreaker.length;i++){
+        if(a.tiebreaker[i]>b.tiebreaker[i])return {result:1, a, b};
+        if(a.tiebreaker[i]<b.tiebreaker[i])return {result:-1, a, b};
+    }
+    return {result:0, a, b};
+}
+
+const getCardX = (i) => {
+    let base = window.innerWidth < 600 ? 5 : 170;
+    let gap = window.innerWidth < 600 ? (window.innerWidth/6) : 80;
+    return (window.innerWidth < 600) ? (5 + i * 18) + "%" : (base + i * gap) + "px";
+};
+const pY = "250px", cY = "40px";
 
 function showSingleCard(card,elementId,index,hide){
     const container=document.getElementById(elementId);
-    const positions=elementId==="player-hand"?playerPositions:computerPositions;
     let div=document.createElement("div");
     div.className="card"+(hide?" back":"");
     div.textContent=hide?"":card.value+card.suit;
     if(!hide&&(card.suit==="♥"||card.suit==="♦"))div.classList.add("red");
-    div.style.top=positions[index].top;
-    div.style.left=positions[index].left;
-    if(elementId==="player-hand"){div.addEventListener("click",()=>{if(swapUsed||document.getElementById("swapBtn").disabled)return;if(div.style.border==="3px solid red"){div.style.border="1px solid #333";selectedCards=selectedCards.filter(i=>i!==index);}else{if(selectedCards.length>=2){showWarningMessage("最多只能選2張牌");return;} div.style.border="3px solid red";selectedCards.push(index);}});}
+    div.style.top=elementId==="player-hand"?pY:cY;
+    div.style.left=getCardX(index);
+    if(elementId==="player-hand"){
+        div.onclick=()=>{
+            if(swapUsed||document.getElementById("swapBtn").disabled)return;
+            if(div.style.border.includes("red")){div.style.border="1px solid #333";selectedCards=selectedCards.filter(i=>i!==index);}
+            else{if(selectedCards.length>=2){showWarningMessage("最多只能選2張牌");return;} div.style.border="3px solid red";selectedCards.push(index);}
+        };
+    }
     container.appendChild(div);
 }
 
 let playerHand=[],maryHand=[],deck=[];
 async function dealCardsAnimation(){
     deck=createDeck();playerHand=drawCards(deck,5);maryHand=drawCards(deck,5);
-    document.getElementById("player-hand").innerHTML="";
-    document.getElementById("computer-hand").innerHTML="";
-    document.getElementById("messageResult").textContent="";
-    document.getElementById("messageMary").textContent="";
-    document.getElementById("messagePlayer").textContent="";
+    document.getElementById("player-hand").innerHTML=""; document.getElementById("computer-hand").innerHTML="";
     for(let i=0;i<5;i++){
-        showSingleCard(playerHand[i],"player-hand",i,false); 
-        playSound(dealingBuffer);
-        await new Promise(r=>setTimeout(r,300)); 
-        showSingleCard(maryHand[i],"computer-hand",i,true); 
-        playSound(dealingBuffer);
-        await new Promise(r=>setTimeout(r,300));
+        showSingleCard(playerHand[i],"player-hand",i,false); playSound(dealingBuffer); await new Promise(r=>setTimeout(r,300)); 
+        showSingleCard(maryHand[i],"computer-hand",i,true); playSound(dealingBuffer); await new Promise(r=>setTimeout(r,300));
     }
     setTimeout(()=>{
-        const sortOrder=["A","2","3","4","5","6","7","8","9","10","J","Q","K"],suitOrder=["♠","♥","♦","♣"];
-        playerHand.sort((a,b)=>a.value===b.value?suitOrder.indexOf(a.suit)-suitOrder.indexOf(b.suit):sortOrder.indexOf(a.value)-sortOrder.indexOf(b.value));
-        maryHand.sort((a,b)=>a.value===b.value?suitOrder.indexOf(a.suit)-suitOrder.indexOf(b.suit):sortOrder.indexOf(a.value)-sortOrder.indexOf(b.value));
+        playerHand.sort((a,b)=>sortOrder.indexOf(a.value)-sortOrder.indexOf(b.value));
         document.getElementById("player-hand").innerHTML="";
-        document.getElementById("computer-hand").innerHTML="";
-        for(let i=0;i<5;i++){showSingleCard(playerHand[i],"player-hand",i,false); showSingleCard(maryHand[i],"computer-hand",i,true);}
-        document.getElementById("swapBtn").disabled=false;
-        document.getElementById("revealBtn").disabled=false;
-    },1000);
+        for(let i=0;i<5;i++) showSingleCard(playerHand[i],"player-hand",i,false);
+        document.getElementById("swapBtn").disabled=false; document.getElementById("revealBtn").disabled=false;
+    },500);
 }
 
-// 下注
-document.getElementById("betBtn").addEventListener("click",()=>{
+document.getElementById("addCoinBtn").onclick=()=>{
+    if(coinPressCount >= maxCoinPress) return;
+    chips += 10; coinPressCount++; updateChipsDisplay(); playSound(coinBuffer);
+    if(coinPressCount >= maxCoinPress) document.getElementById("addCoinBtn").disabled = true;
+};
+
+document.getElementById("betBtn").onclick=()=>{
     let bet=parseInt(document.getElementById("betAmount").value);
     if(bet>chips){showWarningMessage("錢不夠了"); return;}
     chips-=bet; currentBet=bet; updateChipsDisplay();
-    document.getElementById("player-hand").innerHTML="";
-    document.getElementById("computer-hand").innerHTML="";
-    document.getElementById("messageResult").textContent="";
-    document.getElementById("messageMary").textContent="";
-    document.getElementById("messagePlayer").textContent="";
-    document.getElementById("betBtn").disabled=true;
-    document.getElementById("newGameBtn").disabled=false;
-    document.getElementById("revealBtn").disabled=true;
-    document.getElementById("swapBtn").disabled=true;
-    swapUsed=false;
-    selectedCards=[];
-});
+    document.getElementById("player-hand").innerHTML=""; document.getElementById("computer-hand").innerHTML="";
+    document.getElementById("messageResult").textContent=""; document.getElementById("messageMary").textContent=""; document.getElementById("messagePlayer").textContent="";
+    document.getElementById("betBtn").disabled=true; document.getElementById("newGameBtn").disabled=false;
+    swapUsed=false; selectedCards=[];
+};
 
-// 換牌
-document.getElementById("swapBtn").addEventListener("click", async ()=>{
-    if(swapUsed){showWarningMessage("換牌只能使用一次");return;}
-    if(selectedCards.length===0){showWarningMessage("請先點選最多2張撲克牌");return;}
-    swapUsed=true;
-    document.getElementById("swapBtn").disabled=true;
-    document.getElementById("revealBtn").disabled=true;
-    for(let idx of selectedCards){
-        const cardDiv=document.querySelectorAll("#player-hand .card")[idx];
-        cardDiv.classList.add("back"); cardDiv.textContent="";
-    }
+document.getElementById("swapBtn").onclick=async()=>{
+    if(swapUsed) { showWarningMessage("換牌只能使用一次"); return; }
+    if(selectedCards.length===0){ showWarningMessage("請先點選最多2張撲克牌"); return; }
+    
+    swapUsed=true; document.getElementById("swapBtn").disabled=true;
+    for(let idx of selectedCards){ let d=document.querySelectorAll("#player-hand .card")[idx]; d.classList.add("back"); d.textContent=""; }
     await new Promise(r=>setTimeout(r,1000));
     for(let idx of selectedCards){
         playerHand[idx]=drawCards(deck,1)[0];
-        const cardDiv=document.querySelectorAll("#player-hand .card")[idx];
-        cardDiv.classList.remove("back");
-        cardDiv.textContent=playerHand[idx].value+playerHand[idx].suit;
-        if(playerHand[idx].suit==="♥"||playerHand[idx].suit==="♦") cardDiv.classList.add("red"); else cardDiv.classList.remove("red");
-        cardDiv.style.border="1px solid #333";
+        let d=document.querySelectorAll("#player-hand .card")[idx];
+        d.classList.remove("back"); d.textContent=playerHand[idx].value+playerHand[idx].suit;
+        if(playerHand[idx].suit==="♥"||playerHand[idx].suit==="♦") d.classList.add("red"); else d.classList.remove("red");
+        d.style.border="1px solid #333";
     }
+    playerHand.sort((a,b)=>sortOrder.indexOf(a.value)-sortOrder.indexOf(b.value));
+    document.getElementById("player-hand").innerHTML="";
+    for(let i=0;i<5;i++) showSingleCard(playerHand[i],"player-hand",i,false);
     selectedCards=[];
-    setTimeout(()=>{
-        const sortOrder=["A","2","3","4","5","6","7","8","9","10","J","Q","K"], suitOrder=["♠","♥","♦","♣"];
-        playerHand.sort((a,b)=>a.value===b.value?suitOrder.indexOf(a.suit)-suitOrder.indexOf(b.suit):sortOrder.indexOf(a.value)-sortOrder.indexOf(b.value));
-        document.getElementById("player-hand").innerHTML="";
-        for(let i=0;i<5;i++){showSingleCard(playerHand[i],"player-hand",i,false);}
-        document.getElementById("revealBtn").disabled=false;
-    },2000);
-});
+};
 
-// 發牌
-document.getElementById("newGameBtn").addEventListener("click", async ()=>{
-    document.getElementById("newGameBtn").disabled=true; 
-    document.getElementById("addCoinBtn").disabled=true; 
+document.getElementById("newGameBtn").onclick=async()=>{
+    document.getElementById("newGameBtn").disabled=true; document.getElementById("addCoinBtn").disabled=true; 
     await dealCardsAnimation();
-});
+};
 
-// 攤牌
-document.getElementById("revealBtn").addEventListener("click",()=>{
+document.getElementById("revealBtn").onclick=()=>{
     const computerCards=document.querySelectorAll("#computer-hand .card");
     for(let i=0;i<5;i++){
-        computerCards[i].textContent=maryHand[i].value+maryHand[i].suit;
-        computerCards[i].classList.remove("back");
-        if(maryHand[i].suit==="♥"||maryHand[i].suit==="♦") computerCards[i].classList.add("red"); else computerCards[i].classList.remove("red");
+        computerCards[i].textContent=maryHand[i].value+maryHand[i].suit; computerCards[i].classList.remove("back");
+        if(maryHand[i].suit==="♥"||maryHand[i].suit==="♦") computerCards[i].classList.add("red");
     }
-    const playerCards=document.querySelectorAll("#player-hand .card");
-    playerCards.forEach(c=>c.style.border="1px solid #333");
-    document.getElementById("swapBtn").disabled=true;
     let res=compareHands(playerHand,maryHand);
-    let resultText=res.result===1?`你贏了 ${currentBet} 元`:(res.result===-1?`你輸了 ${currentBet} 元`:"平手");
-    document.getElementById("messageResult").textContent=resultText;
-    document.getElementById("messageMary").textContent=` ${res.hand2Name}`;
-    document.getElementById("messagePlayer").textContent=` ${res.hand1Name}`;
+    let resultText="";
     if(res.result===1){
-        chips+=currentBet*2; 
-        updateChipsDisplay();
-        playSound(winBuffer);
+        let mult = getMultiplier(res.a.score);
+        let win = Math.floor(currentBet * (1 + mult));
+        chips += win; resultText = `你贏了 ${win} 元 (x${mult})`; playSound(winBuffer);
     } else if(res.result===-1){
-        playSound(loseBuffer);
+        resultText = `你輸了 ${currentBet} 元`; playSound(loseBuffer);
+    } else {
+        chips += currentBet; resultText = "平手 (退回籌碼)";
     }
-    currentBet=0;
-    document.getElementById("betBtn").disabled=false;
-    document.getElementById("revealBtn").disabled=true;
-    swapUsed=true;
-    selectedCards=[];
+    document.getElementById("messageResult").textContent=resultText;
+    document.getElementById("messageMary").textContent=res.b.handName;
+    document.getElementById("messagePlayer").textContent=res.a.handName;
+    updateChipsDisplay();
+    document.getElementById("betBtn").disabled=false; document.getElementById("revealBtn").disabled=true;
+    document.getElementById("swapBtn").disabled=true;
     if(chips===0){ coinPressCount=0; document.getElementById("addCoinBtn").disabled=false; }
-});
+};
 
 updateChipsDisplay();
-//版權宣告 : 程式可以免費使用, 但不能有營利的用途 Nathan
 </script>
 </body>
 </html>
