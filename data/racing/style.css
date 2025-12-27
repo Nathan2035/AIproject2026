@@ -5,12 +5,11 @@ html, body {
 }
 
 #appContainer {
-    width: 100vw; height: 100dvh; /* 動態高度，避開 Safari 工具列 */
+    width: 100vw; height: 100dvh; 
     display: flex; align-items: center; justify-content: center;
     background: #fff;
 }
 
-/* 自動根據螢幕大小縮放遊戲 */
 #gameWrapper { 
     width:400px; 
     text-align:center; 
@@ -18,7 +17,6 @@ html, body {
     flex-shrink: 0;
 }
 
-/* 核心樣式 */
 #game { width:400px; height:600px; background:#555; border:4px solid #000; position:relative; overflow:hidden; touch-action:none; }
 canvas { position:absolute; top:0; left:0; z-index:1; }
 .player, .enemy { position:absolute; z-index:2; }

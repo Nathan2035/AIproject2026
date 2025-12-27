@@ -12,8 +12,6 @@ resize();
 
 // --- 遊戲邏輯 ---
 const backBtn = document.getElementById('backBtn');
-backBtn.onclick=()=>{window.history.back();};
-
 const game = document.getElementById('game');
 const player = document.getElementById('player');
 const startBtn = document.getElementById('startBtn');
@@ -24,6 +22,8 @@ const kmDisplay = document.getElementById('kmDisplay');
 const speedDisplay = document.getElementById('speedDisplay');
 const adBoard = document.getElementById('adBoard');
 const highScoreDisplay = document.getElementById('highScoreDisplay');
+
+backBtn.onclick=()=>{window.history.back();};
 
 const gameWidth = 400, gameHeight = 600, playerWidth=50;
 let playerPos = 175; player.style.left = playerPos+'px';
@@ -64,18 +64,16 @@ let nextAdKm = 1;
 let adBoardActive = false;
 let adBoardPosY = -50;
 
-// 音效處理
-let audioCtx, engineOsc, engineNoise, engineGain, engineFilter, isEngineActive=false;
+// 音效
+let audioCtx, engineOsc, engineNoise, engineGain, engineFilter, engineSoundActive=false;
 let crashBuffer = null;
-
 function loadCrashSound(){
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   fetch('Crash_sound.mp3').then(r => r.arrayBuffer()).then(d => audioCtx.decodeAudioData(d)).then(b => { crashBuffer = b; }).catch(e => console.log(e));
 }
 function playCrashSound(){ if(!crashBuffer) return; const cs = audioCtx.createBufferSource(); cs.buffer = crashBuffer; cs.connect(audioCtx.destination); cs.start(); }
-
 function startEngineSound() {
-  if(isEngineActive) return;
+  if(engineSoundActive) return;
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   loadCrashSound();
   engineOsc = audioCtx.createOscillator(); engineOsc.type = 'sawtooth';
@@ -85,11 +83,11 @@ function startEngineSound() {
   engineGain = audioCtx.createGain(); engineGain.gain.value = 0.15;
   engineFilter = audioCtx.createBiquadFilter(); engineFilter.type = 'lowpass'; engineFilter.frequency.value = 800;
   engineOsc.connect(engineFilter); engineNoise.connect(engineFilter); engineFilter.connect(engineGain); engineGain.connect(audioCtx.destination);
-  engineOsc.frequency.value = speedToHz(speed); engineOsc.start(); engineNoise.start(); isEngineActive = true;
+  engineOsc.frequency.value = speedToHz(speed); engineOsc.start(); engineNoise.start(); engineSoundActive = true;
 }
-function stopEngineSound(){ if(!isEngineActive) return; engineOsc.stop(); engineNoise.stop(); isEngineActive = false; }
+function stopEngineSound(){ if(!engineSoundActive) return; engineOsc.stop(); engineNoise.stop(); engineSoundActive = false; }
 function speedToHz(spd) { return 100 + spd * 5; }
-function updateEngineSound(delta){ if(!isEngineActive) return; engineOsc.frequency.setTargetAtTime(speedToHz(speed), audioCtx.currentTime, 0.1); engineFilter.frequency.setTargetAtTime(500 + speed*1.5, audioCtx.currentTime, 0.1); engineGain.gain.setTargetAtTime(0.05 + speed/300*0.25, audioCtx.currentTime, 0.1); }
+function updateEngineSound(delta){ if(!engineSoundActive) return; engineOsc.frequency.setTargetAtTime(speedToHz(speed), audioCtx.currentTime, 0.1); engineFilter.frequency.setTargetAtTime(500 + speed*1.5, audioCtx.currentTime, 0.1); engineGain.gain.setTargetAtTime(0.05 + speed/300*0.25, audioCtx.currentTime, 0.1); }
 
 function displayLED(container,text){ container.innerHTML=''; for(let c of text){ const span=document.createElement('span'); span.className = /[0-9]/.test(c)?'digit':'text'; span.textContent=c; container.appendChild(span); } }
 function updateInfo(){ while(km >= displayKm + 0.1) displayKm += 0.1; const kmFixed = displayKm.toFixed(1); const [ki, kd] = kmFixed.split('.'); displayLED(speedDisplay, `${Math.floor(speed).toString().padStart(3,'0')} KM/H`); displayLED(kmDisplay, `${ki.padStart(3,'0')}.${kd} KM`); }
@@ -212,7 +210,7 @@ function gameLoop(timestamp){
     });
 
     adjustEnemyDistances();
-    if(isEngineActive) updateEngineSound(delta);
+    if(engineSoundActive) updateEngineSound(delta);
     const roundedKm = parseFloat(displayKm.toFixed(1));
     if(roundedKm>highScore){ highScore=roundedKm; localStorage.setItem('racing_high_score', highScore); updateHighScoreDisplay(); }
     if(gameRunning) requestAnimationFrame(gameLoop);
@@ -226,5 +224,9 @@ startBtn.addEventListener('click', ()=>{
     updateInfo(); gameRunning=true; startEngineSound(); requestAnimationFrame(gameLoop);
 });
 
-// 初始化畫面
-km=0; speed=0; displayKm=0; drawRoad(); updateInfo(); updateHighScoreDisplay();
+// --- 初始化啟動順序 ---
+km=0; speed=0; displayKm=0; 
+resize(); // 先確定縮放
+drawRoad(); // 再畫跑道
+updateInfo(); 
+updateHighScoreDisplay();
