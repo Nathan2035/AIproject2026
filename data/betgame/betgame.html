@@ -94,10 +94,9 @@
         box-sizing: border-box;
     }
 
-    /* 針對 ONCE MORE 的字體偏移優化 */
     .cell-once-more {
         font-size: 10px !important;
-        padding-left: 4px !important; /* 向右偏移 4px */
+        padding-left: 4px !important;
         line-height: 1.1;
         text-align: center;
     }
@@ -152,7 +151,6 @@
 
     #button-area button:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #666; }
 
-    /* 按鈕間距邏輯 */
     #func1 { margin-right: 25px; } 
     #func2 { margin-right: auto; } 
     #func3, #cancel, #func4 { gap: 2px; } 
@@ -185,9 +183,29 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        font-weight: bold; /* 此處已改為粗體 */
     }
 
-    .bet button { width: 100%; height: 30px; font-size: 16px; margin: 2px 0; cursor: pointer; }
+    .bet button { 
+        width: 100%; 
+        height: 30px; 
+        font-size: 16px; 
+        margin: 2px 0; 
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+        -webkit-appearance: none;
+        position: relative;
+        left: -8px; 
+    }
+
+    @media (min-width: 1024px) {
+        .bet button {
+            left: 0;
+        }
+    }
 
     .bet .count {
         width: 95%;
@@ -253,7 +271,6 @@
 </div>
 
 <script>
-/* --- 原始邏輯完全保留 --- */
 const backBtn = document.getElementById('backBtn');
 backBtn.onclick = () => { window.history.back(); };
 
@@ -304,13 +321,12 @@ for (let r = 0; r < 7; r++) {
         d.dataset.letter = letters[r][c];
         d.textContent = letters[r][c];
         
-        // 樣式微調邏輯
         if (['🍊', '🛎️', '🍒', '🍎', '🥭', '🍉', '⭐', '🀄'].includes(letters[r][c])) {
             d.style.fontSize = '30px';
         } else if (letters[r][c] === '7️⃣') {
             d.style.fontSize = '28px';
         } else if (letters[r][c] === 'ONCE MORE') {
-            d.classList.add('cell-once-more'); // 使用 CSS 定義的 5px 位移
+            d.classList.add('cell-once-more');
         }
 
         const l = document.createElement('div');
